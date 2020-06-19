@@ -1,0 +1,30 @@
+#!/usr/bin/env -S python3 -m dg
+import "/nmigen_dg/*"
+import "/nmigen/cli/main"
+
+
+ALU = subclass Elaboratable where
+    __init__ = width ~> None where
+        @sel = Signal 2
+        @a   = Signal width
+        @b   = Signal width
+        @o   = Signal width
+        @co  = Signal !
+
+    elaborate = platform ~> m where
+        m = Module!
+        when m
+            @sel == 0b00 ,->
+                m.d.comb += drive @o (@a | @b)
+            @sel == 0b01 ,->
+                m.d.comb += drive @o (@a & @b)
+            @sel == 0b10 ,->
+                m.d.comb += drive @o (@a ^ @b)
+            otherwise    ,->
+                m.d.comb += drive (Cat @o @co) (@a - @b)
+
+
+
+if __name__ == "__main__" =>
+    alu = ALU width: 16
+    main alu ports: [alu.sel, alu.a, alu.b, alu.o, alu.co]

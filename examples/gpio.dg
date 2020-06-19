@@ -1,0 +1,29 @@
+#!/usr/bin/env -S python3 -m dg
+import '/types/SimpleNamespace'
+import '/nmigen_dg/*'
+import '/nmigen.cli/main'
+
+
+GPIO = subclass Elaboratable where
+    __init__ = pins bus ~> None where
+        @pins = pins
+        @bus  = bus
+
+    elaborate = platform ~> m where
+        m = Module!
+        m.d.comb += drive @bus.r_data $ @pins !! @bus.addr
+        when m
+            @bus.we ,-> # TODO: no me gusta
+                m.d.sync += drive (@pins !! @bus.addr) @bus.w_data
+
+
+if __name__ == "__main__" =>
+    bus = Record name: 'bus'
+        addr   -> 3
+        r_data -> 1
+        w_data -> 1
+        we     -> 1
+
+    pins = Signal 8 name: 'pins'
+    gpio = GPIO (Array pins) bus
+    main gpio ports: [pins, bus.addr, bus.r_data, bus.w_data, bus.we]

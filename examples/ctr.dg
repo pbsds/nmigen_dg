@@ -1,0 +1,20 @@
+#!/usr/bin/env -S python3 -m dg
+import "/nmigen_dg/*"
+import "/nmigen/cli/main"
+import "/nmigen/cli/pysim"
+
+Counter = subclass Elaboratable where
+    __init__ = width ~> None where
+        @v = Signal width reset: (2**width - 1)
+        @o = Signal!
+
+    elaborate = platform ~> m where
+        m = Module!
+        m.d.sync += drive @v (@v + 1)
+        m.d.comb += drive @o (@v !! -1)
+
+
+
+ctr = Counter width: 16
+if __name__ == "__main__" =>
+    main ctr ports: [ctr.o]

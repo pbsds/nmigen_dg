@@ -1,0 +1,12 @@
+#!/usr/bin/env -S python3 -m dg
+import '/nmigen_dg/*'
+import '/nmigen/lib/cdc/FFSynchronizer'
+import '/nmigen/cli/main'
+
+
+i, o = Signal name:"i", Signal name:"o"
+m = Module!
+m.submodules += FFSynchronizer i o
+
+if __name__ == "__main__" =>
+    main m ports: [i, o]

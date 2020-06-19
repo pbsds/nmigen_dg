@@ -1,0 +1,30 @@
+#!/usr/bin/env -S python3 -m dg
+import '/nmigen_dg/*'
+import '/nmigen.cli/main'
+
+
+ParMux = subclass Elaboratable where
+    __init__ = width ~> None where
+        @s = Signal 3
+        @a = Signal width
+        @b = Signal width
+        @c = Signal width
+        @o = Signal width
+
+    elaborate = platform ~> m where
+        m = Module!
+        switch m @s
+            "--1" ,->
+                m.d.comb += drive @o @a
+            "-1-" ,->
+                m.d.comb += drive @o @b
+            "1--" ,->
+                m.d.comb += drive @o @c
+            otherwise ,->
+                m.d.comb += drive @o 0
+
+
+
+if __name__ == "__main__" =>
+    pmux = ParMux width: 16
+    main pmux ports: [pmux.s, pmux.a, pmux.b, pmux.c, pmux.o]

@@ -1,0 +1,162 @@
+import "/nmigen/*"
+_get_src_loc = import "/nmigen/tracer/get_src_loc"
+
+HIGH = 1
+LOW = 0
+
+
+
+#: Combinatorics
+#:
+#: Example:
+#:
+#:     sync$ drive @a HIGH
+#:     comb$ drive @b LOW
+
+drive = signal value -> signal.eq value
+sync = *:args -> m.d.sync += list args
+comb = *:args -> m.d.cond += list args
+
+
+
+#: if, elif, else
+#:
+#: Example:
+#:
+#:    If m @op $ ->
+#:        m.d.comb += drive @o @sub.o
+#:
+#:    Elif m @op $ ->
+#:        m.d.comb += drive @o @sub.o
+#:
+#:    Else m $ ->
+#:        m.d.comb += drive @o @add.o
+
+If    = module cond body_func -> with module.If   cond => body_func!
+Elif  = module cond body_func -> with module.Elif cond => body_func!
+Else  = module      body_func -> with module.Else      => body_func!
+
+
+
+#: if, elif, else ->
+#: when, elsewhen, otherwise
+#:
+#: Example:
+#:
+#: when m
+#:     @a,->
+#:         print 'foo'
+#:     @b,->
+#:         print 'bar'
+#:     otherwise,->
+#:         print 'baz'
+
+when = module *:pairs ->
+    not $ module :: Module => raise SyntaxError "'when' construction without any provided module"
+    is_first = True
+    did_else = False
+    for (condition, body) in pairs =>
+        is_else = condition is otherwise
+        if
+            did_else =>
+                raise SyntaxError "'otherwise' was not last in 'when' block"
+
+            is_first and not is_else =>
+                with module.If condition => # Wanted feature in nMigen: src_loc_at offset
+                    body!
+
+            not is_first and not is_else =>
+                with module.Elif condition => # Wanted feature in nMigen: src_loc_at offset
+                    body!
+
+            is_else =>
+                with module.Else! => # Wanted feature in nMigen: src_loc_at offset
+                    body!
+                did_else = True
+        is_first = False
+
+
+#: todo
+
+switch = module value *:pairs ->
+    not $ module :: Module => raise SyntaxError "'switc' construction without any provided module"
+    with module.Switch value =>
+        for (match, body) in pairs =>
+            if
+                match is otherwise =>
+                    with module.Case! =>
+                        body!
+                otherwise =>
+                    with module.Case match =>
+                        body!
+
+
+
+#: Construct a nMigen FSM
+#:
+#: Raises:
+#:     SyntaxError: You fucked up
+#:
+#: :param module: nMigen module
+#: :param state: List of functions, where the name of the first positional argument if the name of the state
+#:
+#: Example:
+#:
+#:     FSM m
+#:         foo1 ->
+#:             print "bar1"
+#:             foo1.set_next 'foo2'
+#:         foo2 ->
+#:             print "bar2"
+#:             foo2.then.foo3
+#:         foo3 ->
+#:             print "bar3"
+#:             foo3.set_next 'foo1'
+
+FSM = module *:states -> fsm where
+    AttrNext = subclass object where
+        __getattribute__ = key ~>
+            module.next = key
+
+    Next = subclass object where
+        __init__ = name ~> None where
+            @name = name
+
+        __str__  = self -> @name
+        __repr__ = self -> repr @name
+
+        set_next = state_next ~>
+            module.next = state_next
+
+
+    import '/inspect/signature'
+    with fsm = module.FSM! => # Wanted feature in nMigen: src_loc_at offset
+        for state in states =>
+            name = head $ (signature state).parameters.keys!
+            with module.State name => # Wanted feature in nMigen: src_loc_at offset
+                state $ Next name
+
+#: todo
+
+Record = record where
+    import '/inspect/signature'
+    funcs_to_pairs = funcs ->
+        for func in funcs =>
+            name = head $ (signature func).parameters.keys!
+            yield (name, func None)
+    _Record = Record
+    record = *:funcs **:kwargs ->
+        #kwargs!!"src_loc_at" = 2 + kwargs.get "src_loc_at" 0
+        _Record (funcs_to_pairs funcs) **:kwargs
+
+
+
+"""
+# TODO: eats kwargs
+Record = Record <-
+    *:funcs ->
+        import '/inspect/signature'
+        for func in funcs =>
+            name = head $ (signature func).parameters.keys!
+            yield (name, func None)
+"""

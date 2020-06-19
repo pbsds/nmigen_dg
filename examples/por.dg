@@ -1,0 +1,20 @@
+#!/usr/bin/env -S python3 -m dg
+import '/nmigen_dg/*'
+import '/nmigen.cli/main'
+
+
+m = Module!
+cd_por  = ClockDomain name:'cd_por' reset_less: True
+cd_sync = ClockDomain name:'cd_sync'
+m.domains += cd_por, cd_sync
+
+delay = Signal (range 256) reset: 255 name:'delay'
+with m.If$ delay != 0 =>
+    m.d.por += drive delay (delay - 1)
+m.d.comb += list'
+    drive ClockSignal! (cd_por.clk)
+    drive ResetSignal! (delay != 0)
+
+
+if __name__ == "__main__" =>
+    main m ports: [cd_por.clk]

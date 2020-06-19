@@ -1,0 +1,65 @@
+#!/usr/bin/env -S python3 -m dg
+import "/nmigen_dg/*"
+import "/nmigen/cli/main"
+
+
+UARTReceiver = subclass Elaboratable where
+    __init__ = divisor ~> None where
+        @divisor = divisor
+
+        @i    = Signal!
+        @data = Signal 8
+        @rdy  = Signal!
+        @ack  = Signal!
+        @err  = Signal!
+
+    elaborate = platform ~> m where
+        m = Module!
+
+        ctr = Signal$ range @divisor
+        stb = Signal!
+        when m
+            ctr == 0 ,->
+                m.d.sync += ctr.eq(@divisor - 1)
+                m.d.comb += stb.eq(1)
+            otherwise ,->
+                m.d.sync += ctr.eq(ctr - 1)
+        bit = Signal 3
+        fsm = FSM m
+            START ->
+                when m ~ @i ,-> # TODO: nani?
+                    START.set_next "DATA"
+                    m.d.sync += list'
+                        drive ctr @divisor // 2
+                        drive bit 7
+
+            DATA ->
+                when m stb ,->
+                    m.d.sync += list'
+                        drive bit   (bit - 1)
+                        drive @data (Cat @i  @data)
+
+                    when m bit == 0 ,->
+                        DATA.set_next "STOP"
+            STOP ->
+                when m stb ,->
+                    when m
+                        @i ,->
+                            STOP.set_next "DONE"
+                        otherwise ,->
+                            STOP.set_next "ERROR"
+            DONE ->
+                m.d.comb += drive @rdy 1
+                when m @ack ,->
+                    DONE.set_next "START"
+
+            ERROR ->
+                None
+        m.d.comb += drive @err $ fsm.ongoing "ERROR"
+
+
+
+
+if __name__ == "__main__" =>
+    rx = UARTReceiver 20
+    main rx ports: [rx.i, rx.data, rx.rdy, rx.ack, rx.err]

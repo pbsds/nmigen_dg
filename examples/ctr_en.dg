@@ -1,0 +1,34 @@
+#!/usr/bin/env -S python3 -m dg
+import '/nmigen_dg/*'
+import '/nmigen/back/verilog'
+import '/nmigen/back/pysim'
+
+Counter = subclass Elaboratable where
+    __init__ = width ~> None where
+        @v  = Signal width reset: (2**width - 1)
+        @o  = Signal!
+        @en = Signal!
+
+    elaborate = platform ~>
+        m = Module!
+        m.d.sync += drive @v (@v + 1)
+        m.d.comb += drive @o (@v !! -1)
+        (EnableInserter @en) m
+
+
+ctr = Counter width: 16
+
+print $ verilog.convert ctr ports: [ctr.o, ctr.en]
+
+sim = pysim.Simulator ctr
+sim.add_clock 1e-6
+ce_proc = ->
+    yield from None, None, None
+    yield drive ctr.en 1
+    yield from None, None, None
+    yield drive ctr.en 0
+    yield from None, None, None
+    yield drive ctr.en 1
+sim.add_sync_process ce_proc
+with sim.write_vcd "ctrl.vcd" "ctrl.gtkw" traces: [ctr.en, ctr.v, ctr.o] =>
+    sim.run_until 100e-6 run_passive: True

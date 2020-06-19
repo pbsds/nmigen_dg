@@ -1,0 +1,27 @@
+#!/usr/bin/env -S python3 -m dg
+import '/nmigen_dg/*'
+import '/nmigen.cli/main'
+
+
+System = subclass Elaboratable where
+    __init__ = self -> None where
+        @adr   = Signal 16
+        @dat_r = Signal 8
+        @dat_w = Signal 8
+        @we    = Signal !
+
+    elaborate = platform ~> m where
+        m = Module!
+        m.submodules.cpu = Instance "CPU"
+            p_RESET_ADDR : 0xfff0
+            i_d_adr      : @adr
+            i_d_dat_r    : @dat_r
+            o_d_dat_w    : @dat_w
+            i_d_we       : @we
+
+
+
+
+if __name__ == "__main__" =>
+    sys = System!
+    main sys ports: [sys.adr, sys.dat_r, sys.dat_w, sys.we]
