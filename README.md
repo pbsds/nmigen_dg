@@ -2,7 +2,7 @@
 
 [nMigen](https://m-labs.hk/gateware/nmigen/) is a Hardware Description Language (HDL) hosted in Python.
 
-* It is an *internal* DSL (Domain Specific Language), which means it not only allows you to construct hardware using the DSL, but it also allows you to reap the benefits of the hosted it is hosted in.
+* It is an *internal* DSL (Domain Specific Language), which means it not only allows you to construct hardware using the DSL, but it also allows you to reap the benefits of the language it is hosted in.
 * Python is an accessible language with wide availability and a focus on readability.
 * Python is however not really suited for hosting these kinds of DSLs, due to having few metaprogramming facilities to create any custom syntax, making both nMigen (and it predecessor Migen) awkward to use.
 * Other languages like Scala, V and Rust more better suited to host internal DSLs, with great HDL examples being Chisel3 and SpinalHDL.
@@ -87,6 +87,10 @@ This can also used to create state machines! The following:
 
 * It is a new syntax to learn, with some unintuitive operator precedence when coming from Python.
 
+* Syntax for list slicing is missing
+
+* Syntax for type annotations are missing
+
 * The author of `dg` says not to use the language for anything serious.
 
 * The author of `dg` is at the time of writing the sole contributor, making the language very fragile.
@@ -118,6 +122,6 @@ Or run and compare all of them:
 
 If you have python 3.8 installed. Install python3.7 alongside and run as follows:
 
-	python3.7 -m easy_setup pip
+	python3.7 -m easy_install pip
 	python3.7 -m pip install poetry
 	python3.7 -m poetry ...
