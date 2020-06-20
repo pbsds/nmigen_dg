@@ -86,8 +86,14 @@ Else  =      body_func -> with (_get_module 'Else').Else      => body_func!
 #:     otherwise,->
 #:         print 'baz'
 
-when = *:pairs ->
+when = *:pairs -> None where
     m = _get_module "when"
+    if not $ any $ map (::tuple) pairs =>
+        if len pairs == 2 and (pairs!!1)::(type (->1)) =>
+            condition, body = pairs
+            with m.If condition => body!
+            return None
+
     is_first = True
     did_else = False
     for (condition, body) in pairs =>
@@ -162,7 +168,7 @@ FSM = *:states -> fsm where
         __str__  = self -> @name
         __repr__ = self -> repr @name
 
-        set_next = next_state_name ~>
+        __getattribute__ = next_state_name ~>
             m.next = next_state_name
 
 

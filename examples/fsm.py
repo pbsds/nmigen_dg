@@ -53,9 +53,9 @@ class UARTReceiver(Elaboratable):
                 with m.If(self.ack):
                     m.next = "START"
 
-            m.d.comb += self.err.eq(fsm.ongoing("ERROR"))
             with m.State("ERROR"):
                 pass
+        m.d.comb += self.err.eq(fsm.ongoing("ERROR"))
 
         return m
 
