@@ -12,7 +12,7 @@
 `nmigen_dg` is a layer on top of nMigen, with an interface more suited for dg. The aim of `nmigen_dg` is to make nMigen as a HDL more **readable**.
 
 
-# Strengths
+# `dg` Strengths:
 
 * `dg` *looks* more declarative, fitting for implementing logic in hardware
 * `dg` provides a way to define inline functions, allowing us more freedom to design a DSL.
@@ -22,21 +22,138 @@
 
 
 
-# Ideas
+# Ideas:
 
-My aim is readability. To achieve this I aim to *minimize syntactic noise* and to achieve a syntax as close to bare `dg` as possible.
-The following is written with the assumption that you've read the [guide to dg](https://pyos.github.io/dg/tutorial/).
+My aim is readability. To achieve this I aim to *minimize syntactic noise* and to achieve a syntax as close to normal `dg` as possible.
+The following presents examples written in `dg`. Refer to the [guide to dg](https://pyos.github.io/dg/tutorial/) if needed.
 
-## Clear separation between hardware and control-flow
+## Get rid of `self.`
 
-I opted to rename the `if/elif/else` constructs in nMigen to `when/otherwise`.
-This is to better mentally separate the execution flow from the hardware logic being implemented.
-`when` is inspired by [Chisel3](https://www.chisel-lang.org/), and `dg` already has a `otherwise`, which then naturally replaced `else`
+This one is basically free.
+`dg` expands the prefix `@` into `self.`.
+This reduces the size of many statements and makes the code more reminicient of [pyrope](https://masc.soe.ucsc.edu/pyrope.html).
+We could then stick to the design convention that `@` means module io, and we now get nice syntax highligting for these for free.
+
+
+## What the `.eq()`?
+
+Most HDLs lets you drive registers/wires/signals with some kind of operator derived from `=`
+
+* Verilog use `assign target = source;`
+* Chisel3 use `target := source`
+* Both `=` and `:=` are taken in `dg`
+
+Python does not have any operators to spare for this purpose, and therefore the nMigen team landed on `target.eq(source)`.
+Most Python programmers read `eq` as *"equals"*, opening the gates for you to confuse the assignment with an equality check.
+
+`nmigen_dg` therefore introduces an alternative function: `drive(target, source)`.
+In `dg` syntax it becomes `drive target source`.
+
+`dg` also allows you to create custom infix operators by modifying the parser/compiler. I am currently pondering on adding `target <== source`
+
+
+## Infer `m` from context
+
+nMigen has you prod at the `m` variable to create your hardware.
+If we turn all the HDL statements into functions instead of methods, and disallow threading during elaboration, we can get rid of `m` everywhere! This:
+
+	elaborate = platform ~>
+		m = Module!
+		m.d.comb += drive $a ($b + $c)
+		return m
+
+, can become
+
+	elaborate = platform ~> m where with m = Module! =>
+
+		comb$ drive $a ($b + $c)
+
+
+
+## A more clear separation between hardware constructs and elaboration program-flow
+
+`If` became awfully close to the existing keyword `if` after i got rid of the `with m.` prefix.
+I opted to rename the `If/Elif/Else` constructs in nMigen to `when`.
+This change is to better mentally separate the execution flow from the hardware logic being implemented.
+The `when` keyword is inspired by [Chisel3](https://www.chisel-lang.org/), and `dg` already has a `otherwise` constant equal to `True`, which then naturally replaced the `else` case.
+
+
+## Wrap the context managers in higher order functions
+
+All the `with` statements in nMigen produce a lot of visual noise in the code. In `dg` we can generalize
+
+	with m.If(self.signal):
+		m.d.cond += self.out
+
+into
+
+	with m.If(value):
+		body()
+
+, where `value` and `body` are `self.signal` and `def body(): m.d.cond += self.out` respectively
+
+This is how `nmigen_dg` creates its `when` construct:
+
+	when
+		@input > 0 ,->
+			m.d.comb += @positive.eq 1
+		@input == 0 ,->
+			m.d.comb += @positive.eq 1
+		@input < 0 ,->
+			m.d.comb += @positive.eq 1
+		otherwise ,->
+			m.d.comb += @error.eq 1
+
+Here we see the `when` function take in a list of pairs of conditions and body lambdas.
+In Python type annotation, the `when` would look something like this:
+
+	def when(*pairs: Sequence[Tuple[Signal, Function]]): ...
+
+Due to some weird operator precedence, this does not work for single-line when blocks:
+
+	when condition ,->
+		...
+
+gets parsed as
+
+ 	(( when condition ), ( -> ... ))
+
+(I think that `,` having a higher precedence than both `$` and `<|` could be a bug)
+Therefore, `when` supports this alternative calling convention:
+
+	when condition $ ->
+		...
+
+I am thinking of creating a custom operator equal to `,->` but with a lower precedence.
+
+The `switch` construct is made using the same idea as `when`, turning
+
+	with m.Switch(self.s):
+		with m.Case("--1"):
+			m.d.comb += self.o.eq(self.a)
+		with m.Case("-1-"):
+			m.d.comb += self.o.eq(self.b)
+		with m.Case("1--"):
+			m.d.comb += self.o.eq(self.c)
+		with m.Case():
+			m.d.comb += self.o.eq(0)
+
+into
+
+	switch @s
+		"--1" ,->
+			comb$ drive @o @a
+		"-1-" ,->
+			comb$ drive @o @b
+		"1--" ,->
+			comb$ drive @o @c
+		otherwise ,->
+			comb$ drive @o 0
 
 
 ## Abuse lambdas and their signatures
 
-In nMigen we construct Records (others call them bundles or structs) from a list of pairs of names and sizes:
+In nMigen we construct Records (others call them bundles or structs) from a list of pairs of field names and their respective sizes:
 
 	my_record = Record([
 		("foo", 8),
@@ -44,14 +161,22 @@ In nMigen we construct Records (others call them bundles or structs) from a list
 		("baz", 4),
 	])
 
-If we limit the field names to be valid identifiers, we can make the record form a list of lambdas by inspecting the name of their arguments. In `nmigen_dg` we write:
+If we translate this directly to `dg` we get:
+
+	my_record = Record list'
+		"foo", 8
+		"bar", 4
+		"baz", 4
+
+, which is already looking pretty nice, but we can do better!
+If we limit the field names to be valid `dg` identifiers (pretty safe assumption), we can make the record out of a list of lambdas. We get their names by inspecting the name of their first parameter, and get the value by calling the lambdas with a dummy value. In `nmigen_dg` we therefore write:
 
 	my_record = Record
 		foo -> 8
 		bar -> 4
 		baz -> 4
 
-This can also used to create state machines! The following:
+This can be further expanded to create state machines! The following nMigen FSM:
 
 	with m.FSM() as fsm:
 		with m.State("START"):
@@ -62,12 +187,11 @@ This can also used to create state machines! The following:
 			m.next = "STOP"
 		with m.State("STOP"):
 			...
-
 	x = fsm.ongoing("DATA")
 
-, can with a shim in `dg` become:
+, can in `nmigen_dg` be written as:
 
-	fsm = FSM m
+	fsm = FSM
 		START ->
 	    	...
 			START |>. DATA
@@ -76,14 +200,13 @@ This can also used to create state machines! The following:
 			DATA |>. STOP
 		STOP ->
 			...
+	x = fsm.ongoing "DATA"
 
-	x = fsm.ongoing.DATA
-
-*(syntax for states transition are subject to change)*
-
+*(`current_state |>. next_state` subject to change)*
 
 
-# Weaknesses
+
+# `dg` Weaknesses:
 
 * It is a new syntax to learn, with some unintuitive operator precedence when coming from Python.
 
@@ -91,36 +214,39 @@ This can also used to create state machines! The following:
 
 * Syntax for type annotations are missing
 
+* Syntax for assertions are missing (can be fixed with a helper function)
+
 * The author of `dg` says not to use the language for anything serious.
 
 * The author of `dg` is at the time of writing the sole contributor, making the language very fragile.
 
-* The transition to Python 3.8 (which changed how the VM stack is is cleaned) is only partway complete at the time of writing.
+* The transition to Python 3.8 (which changed how the VM stack is cleaned) is only partway complete at the time of writing.
 
-* `dg` is selfhosted, and cannot be bootstrapped from bare Python.
+* `dg` is selfhosted, and cannot be bootstrapped from bare Python alone.
   If CPython decides to make a radical change to its bytecode format, `dg` might die.
 
 * `dg` constructs different bytecode than than we would expect from python, making the stack frame inspection in nMigen (to determine names) not always work.
 
-A lot of these can be overcome by contributing to `dg`.
+A lot of these issues can be overcome by contributing to `dg`.
 
 
-# Examples and tests
+# Examples and tests:
 
-[These nMigen example](https://github.com/m-labs/nmigen/tree/master/examples/basic) has been translated to `dg` in `examples/`, with line numbers somewhat preserved. First:
+[These nMigen examples](https://github.com/m-labs/nmigen/tree/master/examples/basic) has been translated to `nmigen_dg` in `examples/`, with line numbers somewhat preserved.
+First:
 
 	poetry install
 
-,then run and compare the output:
+, then run and compare the output:
 
 	poetry run ./examples/alu_hier.py generate
 	poetry run ./examples/alu_hier.dg generate
 
-Or run and compare all of them:
+, or run and compare all of them:
 
 	poetry run ./test_examples.py | column -s: -t
 
-If you have python 3.8 installed. Install python3.7 alongside and run as follows:
+If you have python 3.8 installed. Install python3.7 alongside and run it as follows:
 
 	python3.7 -m easy_install pip
 	python3.7 -m pip install poetry

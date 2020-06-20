@@ -15,7 +15,6 @@ UARTReceiver = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-
         ctr = Signal$ range @divisor
         stb = Signal!
         when
@@ -24,6 +23,7 @@ UARTReceiver = subclass Elaboratable where
                 comb$ drive stb 1
             otherwise ,->
                 sync$ drive ctr (ctr - 1)
+
         bit = Signal 3
         fsm = FSM
             START ->
