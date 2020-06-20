@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from concurrent.futures import ThreadPoolExecutor
 import glob
+import sys
 import re
 import subprocess
 
@@ -36,6 +37,7 @@ for pyscript, dgscript, e1, e2 in batches:
 
     print(pyscript[:-2] + "*:", result1 == result2)
 
+    if "-s" in sys.argv[1:]: continue
     for i, (line1, line2) in enumerate(zip(*map(str.splitlines, [result1, result2]))):
         if line1 != line2:
             print("\t-", line1)
