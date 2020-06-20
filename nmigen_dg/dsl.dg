@@ -39,10 +39,18 @@ LOW  = 0
 #:
 #:     sync$ drive @a HIGH
 #:     comb$ drive @b LOW
+#:     domain.mydomain$ drive @c 5
 
-drive = signal value -> signal.eq value # todo, find a nice infix way
-sync = *:args -> (_get_module 'sync').d.sync += list args
-comb = *:args -> (_get_module 'comb').d.comb += list args
+drive = signal value -> signal.eq value # TODO: find a nice infix way
+
+domain = d! where d = subclass object where
+    __getattribute__ = domain_name ~>
+        *:args ->
+            m = _get_module $ 'domain.' + domain_name
+            domain = getattr m.d domain_name
+            domain += list args
+sync = domain.sync
+comb = domain.comb
 
 
 
