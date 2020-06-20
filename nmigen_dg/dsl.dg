@@ -25,7 +25,7 @@ ModuleBuildingContext = (import "/contextlib/contextmanager") $ ->
 
 
 HIGH = 1
-LOW = 0
+LOW  = 0
 
 
 
@@ -173,15 +173,3 @@ Record = record where
     record = *:funcs **:kwargs ->
         #kwargs!!"src_loc_at" = 2 + kwargs.get "src_loc_at" 0
         _Record (funcs_to_pairs funcs) **:kwargs
-
-
-
-"""
-# TODO: eats kwargs
-Record = Record <-
-    *:funcs ->
-        import '/inspect/signature'
-        for func in funcs =>
-            name = head $ (signature func).parameters.keys!
-            yield (name, func None)
-"""
