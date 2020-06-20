@@ -13,49 +13,49 @@ UARTReceiver = subclass Elaboratable where
         @ack  = Signal!
         @err  = Signal!
 
-    elaborate = platform ~> m where
-        m = Module!
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
 
         ctr = Signal$ range @divisor
         stb = Signal!
-        when m
+        when
             ctr == 0 ,->
                 m.d.sync += ctr.eq(@divisor - 1)
                 m.d.comb += stb.eq(1)
             otherwise ,->
                 m.d.sync += ctr.eq(ctr - 1)
         bit = Signal 3
-        fsm = FSM m
+        fsm = FSM
             START ->
-                when m ~ @i ,-> # TODO: nani?
+                when ~ @i ,-> # TODO: nani?
                     START.set_next "DATA"
-                    m.d.sync += list'
+                    sync
                         drive ctr @divisor // 2
                         drive bit 7
 
             DATA ->
-                when m stb ,->
-                    m.d.sync += list'
+                when stb ,->
+                    sync
                         drive bit   (bit - 1)
                         drive @data (Cat @i  @data)
 
-                    when m bit == 0 ,->
+                    when bit == 0 ,->
                         DATA.set_next "STOP"
             STOP ->
-                when m stb ,->
-                    when m
+                when stb ,->
+                    when
                         @i ,->
                             STOP.set_next "DONE"
                         otherwise ,->
                             STOP.set_next "ERROR"
             DONE ->
-                m.d.comb += drive @rdy 1
-                when m @ack ,->
+                comb$ drive @rdy 1
+                when @ack ,->
                     DONE.set_next "START"
 
             ERROR ->
                 None
-        m.d.comb += drive @err $ fsm.ongoing "ERROR"
+        comb$ drive @err $ fsm.ongoing "ERROR"
 
 
 

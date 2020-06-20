@@ -8,10 +8,10 @@ Counter = subclass Elaboratable where
         @v = Signal width reset: (2**width - 1)
         @o = Signal!
 
-    elaborate = platform ~> m where
-        m = Module!
-        m.d.sync += drive @v (@v + 1)
-        m.d.comb += drive @o (@v !! -1)
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
+        sync$ drive @v (@v + 1)
+        comb$ drive @o (@v !! -1)
 
 
 

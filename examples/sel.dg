@@ -9,13 +9,13 @@ FlatGPIO = subclass Elaboratable where
         @pins = pins
         @bus  = bus
 
-    elaborate = platform ~> m where
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
 
 
-        m = Module!
-        m.d.comb += drive @bus.r_data $ @pins.word_select @bus.addr (len @bus.r_data)
+
+        comb$ drive @bus.r_data $ @pins.word_select @bus.addr (len @bus.r_data)
         with m.If @bus.we => # TODO
-            m.d.sync += drive (@pins.word_select @bus.addr (len @bus.w_data)) @bus.w_data
+            sync$ drive (@pins.word_select @bus.addr (len @bus.w_data)) @bus.w_data
 
 
 

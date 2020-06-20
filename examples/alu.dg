@@ -11,17 +11,17 @@ ALU = subclass Elaboratable where
         @o   = Signal width
         @co  = Signal !
 
-    elaborate = platform ~> m where
-        m = Module!
-        when m
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
+        when
             @sel == 0b00 ,->
-                m.d.comb += drive @o (@a | @b)
+                comb$ drive @o (@a | @b)
             @sel == 0b01 ,->
-                m.d.comb += drive @o (@a & @b)
+                comb$ drive @o (@a & @b)
             @sel == 0b10 ,->
-                m.d.comb += drive @o (@a ^ @b)
+                comb$ drive @o (@a ^ @b)
             otherwise    ,->
-                m.d.comb += drive (Cat @o @co) (@a - @b)
+                comb$ drive (Cat @o @co) (@a - @b)
 
 
 

@@ -10,8 +10,8 @@ System = subclass Elaboratable where
         @dat_w = Signal 8
         @we    = Signal !
 
-    elaborate = platform ~> m where
-        m = Module!
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
         m.submodules.cpu = Instance "CPU"
             p_RESET_ADDR : 0xfff0
             i_d_adr      : @adr

@@ -1,6 +1,29 @@
 import "/nmigen/*"
 _get_src_loc = import "/nmigen/tracer/get_src_loc"
 
+
+#: TODO
+
+_SYNTAX_ERROR = src_loc_offset *:text sep:" " ->
+    # TODO: use 'src_loc_offset' to remove the shim from the stack trace
+    raise SyntaxError $ sep.join text
+
+
+
+#: TODO
+
+_current_module = None
+_get_module = contruct_name -> _current_module where
+    not $ _current_module :: Module =>
+        _SYNTAX_ERROR 1 (repr contruct_name) "construction outside of ModuleBuildingContext"
+ModuleBuildingContext = (import "/contextlib/contextmanager") $ ->
+    pushed_context = _current_module # save reference
+    _current_module := Module! # push new
+    yield _current_module
+    _current_module := pushed_context # pop reference
+
+
+
 HIGH = 1
 LOW = 0
 
@@ -13,9 +36,9 @@ LOW = 0
 #:     sync$ drive @a HIGH
 #:     comb$ drive @b LOW
 
-drive = signal value -> signal.eq value
-sync = *:args -> m.d.sync += list args
-comb = *:args -> m.d.cond += list args
+drive = signal value -> signal.eq value # todo, find a nice infix way
+sync = *:args -> (_get_module 'sync').d.sync += list args
+comb = *:args -> (_get_module 'comb').d.comb += list args
 
 
 
@@ -32,9 +55,9 @@ comb = *:args -> m.d.cond += list args
 #:    Else m $ ->
 #:        m.d.comb += drive @o @add.o
 
-If    = module cond body_func -> with module.If   cond => body_func!
-Elif  = module cond body_func -> with module.Elif cond => body_func!
-Else  = module      body_func -> with module.Else      => body_func!
+If    = cond body_func -> with (_get_module 'If'  ).If   cond => body_func!
+Elif  = cond body_func -> with (_get_module 'Elif').Elif cond => body_func!
+Else  =      body_func -> with (_get_module 'Else').Else      => body_func!
 
 
 
@@ -51,26 +74,26 @@ Else  = module      body_func -> with module.Else      => body_func!
 #:     otherwise,->
 #:         print 'baz'
 
-when = module *:pairs ->
-    not $ module :: Module => raise SyntaxError "'when' construction without any provided module"
+when = *:pairs ->
+    m = _get_module "when"
     is_first = True
     did_else = False
     for (condition, body) in pairs =>
         is_else = condition is otherwise
         if
             did_else =>
-                raise SyntaxError "'otherwise' was not last in 'when' block"
+                _SYNTAX_ERROR 1 "'otherwise' was not last in 'when' block"
 
             is_first and not is_else =>
-                with module.If condition => # Wanted feature in nMigen: src_loc_at offset
+                with m.If condition => # Wanted feature in nMigen: src_loc_at offset
                     body!
 
             not is_first and not is_else =>
-                with module.Elif condition => # Wanted feature in nMigen: src_loc_at offset
+                with m.Elif condition => # Wanted feature in nMigen: src_loc_at offset
                     body!
 
             is_else =>
-                with module.Else! => # Wanted feature in nMigen: src_loc_at offset
+                with m.Else! => # Wanted feature in nMigen: src_loc_at offset
                     body!
                 did_else = True
         is_first = False
@@ -78,16 +101,16 @@ when = module *:pairs ->
 
 #: todo
 
-switch = module value *:pairs ->
-    not $ module :: Module => raise SyntaxError "'switc' construction without any provided module"
-    with module.Switch value =>
+switch = value *:pairs ->
+    m = _get_module "switch"
+    with m.Switch value =>
         for (match, body) in pairs =>
             if
                 match is otherwise =>
-                    with module.Case! =>
+                    with m.Case! =>
                         body!
                 otherwise =>
-                    with module.Case match =>
+                    with m.Case match =>
                         body!
 
 
@@ -113,10 +136,12 @@ switch = module value *:pairs ->
 #:             print "bar3"
 #:             foo3.set_next 'foo1'
 
-FSM = module *:states -> fsm where
+FSM = *:states -> fsm where
+    m = _get_module "FSM"
+
     AttrNext = subclass object where
         __getattribute__ = key ~>
-            module.next = key
+            m.next = key
 
     Next = subclass object where
         __init__ = name ~> None where
@@ -125,15 +150,15 @@ FSM = module *:states -> fsm where
         __str__  = self -> @name
         __repr__ = self -> repr @name
 
-        set_next = state_next ~>
-            module.next = state_next
+        set_next = next_state_name ~>
+            m.next = next_state_name
 
 
     import '/inspect/signature'
-    with fsm = module.FSM! => # Wanted feature in nMigen: src_loc_at offset
+    with fsm = m.FSM! => # TODO: src_loc_at
         for state in states =>
             name = head $ (signature state).parameters.keys!
-            with module.State name => # Wanted feature in nMigen: src_loc_at offset
+            with m.State name => # TODO: src_loc_at
                 state $ Next name
 
 #: todo

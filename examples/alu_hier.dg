@@ -8,9 +8,9 @@ Adder = subclass Elaboratable where
         @b = Signal width
         @o = Signal width
 
-    elaborate = platform ~> m where
-        m = Module!
-        m.d.comb += drive @o (@a + @b)
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
+        comb$ drive @o (@a + @b)
 
 
 
@@ -20,9 +20,9 @@ Subtractor = subclass Elaboratable where
         @b = Signal width
         @o = Signal width
 
-    elaborate = platform ~> m where
-        m = Module!
-        m.d.comb += drive @o (@a - @b)
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
+        comb$ drive @o (@a - @b)
 
 
 
@@ -36,23 +36,23 @@ ALU = subclass Elaboratable where
         @add = Adder      width
         @sub = Subtractor width
 
-    elaborate = platform ~> m where
-        m = Module!
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
         m.submodules.add = @add
         m.submodules.sub = @sub
 
-        m.d.comb += list' # ew
+        comb
             drive @add.a @a
             drive @sub.a @a
             drive @add.b @b
             drive @sub.b @b
 
-        when m
+        when
             @op, ->
-                m.d.comb += drive @o @sub.o
+                comb$ drive @o @sub.o
 
             otherwise,->
-                m.d.comb += drive @o @add.o
+                comb$ drive @o @add.o
 
 
 

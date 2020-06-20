@@ -11,17 +11,17 @@ ParMux = subclass Elaboratable where
         @c = Signal width
         @o = Signal width
 
-    elaborate = platform ~> m where
-        m = Module!
-        switch m @s
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
+        switch @s
             "--1" ,->
-                m.d.comb += drive @o @a
+                comb$ drive @o @a
             "-1-" ,->
-                m.d.comb += drive @o @b
+                comb$ drive @o @b
             "1--" ,->
-                m.d.comb += drive @o @c
+                comb$ drive @o @c
             otherwise ,->
-                m.d.comb += drive @o 0
+                comb$ drive @o 0
 
 
 

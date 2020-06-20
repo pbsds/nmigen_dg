@@ -9,12 +9,12 @@ GPIO = subclass Elaboratable where
         @pins = pins
         @bus  = bus
 
-    elaborate = platform ~> m where
-        m = Module!
-        m.d.comb += drive @bus.r_data $ @pins !! @bus.addr
-        when m
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
+        comb$ drive @bus.r_data $ @pins !! @bus.addr
+        when
             @bus.we ,-> # TODO: no me gusta
-                m.d.sync += drive (@pins !! @bus.addr) @bus.w_data
+                sync$ drive (@pins !! @bus.addr) @bus.w_data
 
 
 if __name__ == "__main__" =>

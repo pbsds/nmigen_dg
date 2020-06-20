@@ -11,11 +11,11 @@ RegisterFile = subclass Elaboratable where
         @we    = Signal !
         @mem   = Memory width:8 depth:16 init: [0xaa, 0x55]
 
-    elaborate = platform ~> m where
-        m = Module!
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
         m.submodules.rdport = rdport = @mem.read_port!
         m.submodules.wrport = wrport = @mem.write_port!
-        m.d.comb += list'
+        comb
             drive rdport.addr @adr
             drive @dat_r      rdport.data
             drive wrport.addr @adr

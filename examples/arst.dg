@@ -8,8 +8,8 @@ ClockDivisor = subclass Elaboratable where
         @v = Signal factor
         @o = Signal !
 
-    elaborate = platform ~> m where
-        m = Module!
+    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+
         m.d.sync += @v.eq$ @v + 1
         m.d.comb += @o.eq$ @v !! -1
 
