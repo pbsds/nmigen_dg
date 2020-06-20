@@ -1,6 +1,7 @@
 import "/nmigen/*"
-_get_src_loc = import "/nmigen/tracer/get_src_loc"
-
+_get_src_loc = import "/nmigen/tracer/get_src_loc" pure
+_contextmanager = import "/contextlib/contextmanager" pure
+_signature = import '/inspect/signature' pure
 
 #: TODO
 
@@ -17,7 +18,7 @@ _get_module = NmigenModule contruct_name -> _current_module where
     not $ _current_module :: NmigenModule =>
         _SYNTAX_ERROR 1 (repr contruct_name) "construction outside of module_building_context"
 
-module_building_context = (import "/contextlib/contextmanager") $ module ->
+module_building_context = _contextmanager $ module ->
     pushed_context = _current_module # save reference
     _current_module := module # push new
     yield module
@@ -43,34 +44,34 @@ LOW  = 0
 
 drive = signal value -> signal.eq value # TODO: find a nice infix way
 
-domain = d! where d = subclass object where
+domain = tmp! where tmp = subclass object where
     __getattribute__ = domain_name ~>
-        *:args ->
+        *:statements ->
             m = _get_module $ 'domain.' + domain_name
             domain = getattr m.d domain_name
-            domain += list args
+            domain += list statements
 sync = domain.sync
 comb = domain.comb
 
 
-
+"""
 #: if, elif, else
 #:
 #: Example:
 #:
-#:    If m @op $ ->
-#:        m.d.comb += drive @o @sub.o
+#:    If @op $ ->
+#:        comb$ drive @o @sub.o
 #:
-#:    Elif m @op $ ->
-#:        m.d.comb += drive @o @sub.o
+#:    Elif @op $ ->
+#:        comb$ drive @o @sub.o
 #:
-#:    Else m $ ->
-#:        m.d.comb += drive @o @add.o
+#:    Else $ ->
+#:        comb$ drive @o @add.o
 
 If    = cond body_func -> with (_get_module 'If'  ).If   cond => body_func!
 Elif  = cond body_func -> with (_get_module 'Elif').Elif cond => body_func!
-Else  =      body_func -> with (_get_module 'Else').Else      => body_func!
-
+Else  =      body_func -> with (_get_module 'Else').Else!     => body_func!
+"""
 
 
 #: if, elif, else ->
@@ -78,7 +79,7 @@ Else  =      body_func -> with (_get_module 'Else').Else      => body_func!
 #:
 #: Example:
 #:
-#: when m
+#: when
 #:     @a,->
 #:         print 'foo'
 #:     @b,->
@@ -138,12 +139,11 @@ switch = value *:pairs ->
 #: Raises:
 #:     SyntaxError: You fucked up
 #:
-#: :param module: nMigen module
-#: :param state: List of functions, where the name of the first positional argument if the name of the state
+#: :param states: List of functions, where the name of the first positional argument if the name of the state
 #:
 #: Example:
 #:
-#:     FSM m
+#:     FSM
 #:         foo1 ->
 #:             print "bar1"
 #:             foo1.set_next 'foo2'
@@ -172,20 +172,21 @@ FSM = *:states -> fsm where
             m.next = next_state_name
 
 
-    import '/inspect/signature'
+    names = list (where for state_body in states =>
+        yield head $ (_signature state_body).parameters.keys!)
+
+
     with fsm = m.FSM! => # TODO: src_loc_at
-        for state in states =>
-            name = head $ (signature state).parameters.keys!
+        for (name, state_body) in zip names states =>
             with m.State name => # TODO: src_loc_at
-                state $ Next name
+                state_body $ Next name
 
 #: todo
 
 Record = record where
-    import '/inspect/signature'
     funcs_to_pairs = funcs ->
         for func in funcs =>
-            name = head $ (signature func).parameters.keys!
+            name = head $ (_signature func).parameters.keys!
             yield (name, func None)
     _Record = Record
     record = *:funcs **:kwargs ->

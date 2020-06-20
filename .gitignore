@@ -1,4 +1,6 @@
-ctrl.*
+*.gtkw
+*.vcd
+*.v
 nmigen_dg.egg-info/
 __pycache__/
 dist/

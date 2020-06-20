@@ -40,5 +40,5 @@ for pyscript, dgscript, e1, e2 in batches:
     if "-s" in sys.argv[1:]: continue
     for i, (line1, line2) in enumerate(zip(*map(str.splitlines, [result1, result2]))):
         if line1 != line2:
-            print("\t-", line1)
-            print("\t+", line2)
+            print("\t", str(i).rjust(3),"-", line1)
+            print("\t", str(i).rjust(3),"+", line2)
