@@ -11,7 +11,7 @@ ParMux = subclass Elaboratable where
         @c = Signal width
         @o = Signal width
 
-    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+    elaborate = platform ~> m where with m = Module! =>
 
         switch @s
             "--1" ,->

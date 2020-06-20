@@ -9,7 +9,7 @@ FlatGPIO = subclass Elaboratable where
         @pins = pins
         @bus  = bus
 
-    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+    elaborate = platform ~> m where with m = Module! =>
 
 
 

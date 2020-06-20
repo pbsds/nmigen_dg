@@ -13,7 +13,7 @@ UARTReceiver = subclass Elaboratable where
         @ack  = Signal!
         @err  = Signal!
 
-    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+    elaborate = platform ~> m where with m = Module! =>
 
 
         ctr = Signal$ range @divisor

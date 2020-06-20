@@ -3,7 +3,7 @@ import '/nmigen_dg/*'
 import '/nmigen.cli/main'
 
 
-with m = ModuleBuildingContext! =>
+with m = Module! =>
     cd_por  = ClockDomain name:'cd_por' reset_less: True
     cd_sync = ClockDomain name:'cd_sync'
     m.domains += cd_por, cd_sync

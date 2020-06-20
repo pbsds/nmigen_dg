@@ -9,7 +9,7 @@ Counter = subclass Elaboratable where
         @o  = Signal!
         @en = Signal!
 
-    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+    elaborate = platform ~> m where with m = Module! =>
 
         sync$ drive @v (@v + 1)
         comb$ drive @o (@v !! -1)

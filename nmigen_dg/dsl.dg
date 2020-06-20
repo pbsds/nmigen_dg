@@ -13,15 +13,19 @@ _SYNTAX_ERROR = src_loc_offset *:text sep:" " ->
 #: TODO
 
 _current_module = None
-_get_module = contruct_name -> _current_module where
-    not $ _current_module :: Module =>
-        _SYNTAX_ERROR 1 (repr contruct_name) "construction outside of ModuleBuildingContext"
-ModuleBuildingContext = (import "/contextlib/contextmanager") $ ->
+_get_module = NmigenModule contruct_name -> _current_module where
+    not $ _current_module :: NmigenModule =>
+        _SYNTAX_ERROR 1 (repr contruct_name) "construction outside of module_building_context"
+
+module_building_context = (import "/contextlib/contextmanager") $ module ->
     pushed_context = _current_module # save reference
-    _current_module := Module! # push new
-    yield _current_module
+    _current_module := module # push new
+    yield module
     _current_module := pushed_context # pop reference
 
+# shadow the nMigen Module
+_get_module = bind _get_module Module
+Module = module_building_context <- Module
 
 
 HIGH = 1

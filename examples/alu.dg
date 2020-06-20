@@ -11,7 +11,7 @@ ALU = subclass Elaboratable where
         @o   = Signal width
         @co  = Signal !
 
-    elaborate = platform ~> m where with m = ModuleBuildingContext! =>
+    elaborate = platform ~> m where with m = Module! =>
 
         when
             @sel == 0b00 ,->
