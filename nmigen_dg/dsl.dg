@@ -54,38 +54,20 @@ sync = domain.sync
 comb = domain.comb
 
 
-"""
-#: if, elif, else
+#: if, elif, else -> when + otherwise
 #:
 #: Example:
 #:
-#:    If @op $ ->
-#:        comb$ drive @o @sub.o
-#:
-#:    Elif @op $ ->
-#:        comb$ drive @o @sub.o
-#:
-#:    Else $ ->
-#:        comb$ drive @o @add.o
-
-If    = cond body_func -> with (_get_module 'If'  ).If   cond => body_func!
-Elif  = cond body_func -> with (_get_module 'Elif').Elif cond => body_func!
-Else  =      body_func -> with (_get_module 'Else').Else!     => body_func!
-"""
-
-
-#: if, elif, else ->
-#: when, elsewhen, otherwise
-#:
-#: Example:
+#: when @x $ ->
+#:     print "eyo"
 #:
 #: when
 #:     @a,->
-#:         print 'foo'
+#:         print "foo"
 #:     @b,->
-#:         print 'bar'
+#:         print "bar"
 #:     otherwise,->
-#:         print 'baz'
+#:         print "baz"
 
 when = *:pairs -> None where
     m = _get_module "when"
@@ -118,7 +100,18 @@ when = *:pairs -> None where
         is_first = False
 
 
-#: todo
+
+#: switch
+#:
+#: Example:
+#:
+#: switch $input
+#:     1,->
+#:         print "foo"
+#:     2,->
+#:         print "bar"
+#:     otherwise,->
+#:         print "baz"
 
 switch = value *:pairs ->
     m = _get_module "switch"
@@ -144,15 +137,15 @@ switch = value *:pairs ->
 #: Example:
 #:
 #:     FSM
-#:         foo1 ->
+#:         state1 ->
 #:             print "bar1"
-#:             foo1.set_next 'foo2'
-#:         foo2 ->
+#:             state1 |>. state2
+#:         state2 ->
 #:             print "bar2"
-#:             foo2.then.foo3
-#:         foo3 ->
+#:             state2 |>. state3
+#:         state3 ->
 #:             print "bar3"
-#:             foo3.set_next 'foo1'
+#:             state3 |>. state1
 
 FSM = *:states -> fsm where
     m = _get_module "FSM"
