@@ -6,7 +6,7 @@ authors = ["Peder Bergebakken Sundt <pbsds@hotmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-nmigen = "^0.2"
+nmigen = {git = "https://github.com/nmigen/nmigen"}
 dg = {git = "https://github.com/pbsds/dg", rev = "poetry"}
 
 [tool.poetry.dev-dependencies]
