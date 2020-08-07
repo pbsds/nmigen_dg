@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from concurrent.futures import ThreadPoolExecutor
 import glob
-import sys
 import re
 import subprocess
+import sys
 
 # or perhaps just ask yosys to ommit the cruft?
 comment1_re = re.compile(r'^\s*\(\*.*\*\)$').match
@@ -27,6 +27,8 @@ with ThreadPoolExecutor() as e:
             e.submit(subprocess.run, ["python", "-m", "dg", dgscript, "generate"], capture_output=True),
         ))
 
+col_width = max(len(pyscript) for pyscript, *_ in batches)
+
 for pyscript, dgscript, e1, e2 in batches:
     result1 = "\n".join(linestripper(line)
         for line in e1.result().stdout.decode().splitlines()
@@ -35,7 +37,7 @@ for pyscript, dgscript, e1, e2 in batches:
         for line in e2.result().stdout.decode().splitlines()
         if linefilter(line))
 
-    print(pyscript[:-2] + "*:", result1 == result2)
+    print((pyscript[:-2] + "{py,dg}").ljust(col_width+5), ":", result1 == result2)
 
     if "-s" in sys.argv[1:]: continue
     for i, (line1, line2) in enumerate(zip(*map(str.splitlines, [result1, result2]))):
