@@ -1,6 +1,6 @@
 # `nmigen_dg` - the nMigen dogelang DSL
 
-[nMigen](https://m-labs.hk/gateware/nmigen/) is a Hardware Description Language (HDL) hosted in Python.
+[nMigen](https://nmigen.info/nmigen/latest/) is a Hardware Description Language (HDL) hosted in Python.
 
 * It is an *internal* DSL (Domain Specific Language), which means it not only allows you to construct hardware using the DSL, but it also allows you to reap the benefits of the language it is hosted in.
 * Python is an accessible language with wide availability and a focus on readability.
