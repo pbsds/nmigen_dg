@@ -30,6 +30,7 @@ with ThreadPoolExecutor() as e:
 col_width = max(len(pyscript) for pyscript, *_ in batches)
 
 for pyscript, dgscript, e1, e2 in batches:
+    error = (e1.result().returncode, e1.result().returncode) != (0, 0)
     result1 = "\n".join(linestripper(line)
         for line in e1.result().stdout.decode().splitlines()
         if linefilter(line))
@@ -37,7 +38,7 @@ for pyscript, dgscript, e1, e2 in batches:
         for line in e2.result().stdout.decode().splitlines()
         if linefilter(line))
 
-    print((pyscript[:-2] + "{py,dg}").ljust(col_width+5), ":", result1 == result2)
+    print((pyscript[:-2] + "{py,dg}").ljust(col_width+5), ":", not error and result1 == result2)
 
     if "-s" in sys.argv[1:]: continue
     for i, (line1, line2) in enumerate(zip(*map(str.splitlines, [result1, result2]))):
