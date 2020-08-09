@@ -29,6 +29,9 @@ _get_module = bind _get_module Module
 Module = module_building_context <- Module
 
 
+#: constants
+
+#(TODO: remove?)
 HIGH = 1
 LOW  = 0
 
@@ -111,11 +114,11 @@ When = *:pairs -> None where
 #: Example:
 #:
 #: Switch $input
-#:     1,->
+#:     1 ,->
 #:         print "foo"
-#:     2,->
+#:     2 ,->
 #:         print "bar"
-#:     otherwise,->
+#:     otherwise ,->
 #:         print "baz"
 
 Switch = value *:pairs ->
@@ -135,7 +138,7 @@ Switch = value *:pairs ->
 #: Construct a nMigen FSM
 #:
 #: Raises:
-#:     SyntaxError: You fucked up
+#:     SyntaxError: You dun goof'd
 #:
 #: :param states: List of functions, where the name of the first positional argument if the name of the state
 #:
@@ -173,11 +176,11 @@ FSM = *:states -> fsm where
     names = list (where for state_body in states =>
         yield head $ (_signature state_body).parameters.keys!)
 
-
     with fsm = m.FSM! => # TODO: src_loc_at
         for (name, state_body) in zip names states =>
             with m.State name => # TODO: src_loc_at
                 state_body $ Next name
+
 
 #: todo
 
