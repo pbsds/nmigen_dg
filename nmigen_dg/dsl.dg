@@ -33,35 +33,40 @@ HIGH = 1
 LOW  = 0
 
 
+#: 'Drive a b' instead of 'a.eq b' or a |>.eq b
 
-#: Combinatorics
+Drive = signal value -> signal.eq value # TODO: find a nice infix way
+
+
+#: Registering domains
 #:
 #: Example:
 #:
-#:     sync$ drive @a HIGH
-#:     comb$ drive @b LOW
-#:     domain.mydomain$ drive @c 5
+#:     Sync$ Drive @a HIGH
+#:     Comb$ Drive @b LOW
+#:     Domain.mydomain$ Drive @c 5
+#:     Mydomain = Domain.mydomain
+#:     Mydomain$ Drive @d 6
 
-drive = signal value -> signal.eq value # TODO: find a nice infix way
-
-domain = tmp! where tmp = subclass object where
+Domains = Obj! where Obj = subclass object where
     __getattribute__ = domain_name ~>
-        *:statements ->
-            m = _get_module $ 'domain.' + domain_name
-            domain = getattr m.d domain_name
+        *:statements -> # accepts any amount of statments
+            m = _get_module $ 'Domains.' + domain_name
+            domain = m.d `getattr` domain_name
             domain += list statements
-sync = domain.sync
-comb = domain.comb
+Sync = Domains.sync
+Comb = Domains.comb
 
 
-#: if, elif, else -> when + otherwise
+
+#: if, elif, else -> When + otherwise
 #:
 #: Example:
 #:
-#: when @x $ ->
+#: When @x $ ->
 #:     print "eyo"
 #:
-#: when
+#: When
 #:     @a,->
 #:         print "foo"
 #:     @b,->
@@ -69,8 +74,8 @@ comb = domain.comb
 #:     otherwise,->
 #:         print "baz"
 
-when = *:pairs -> None where
-    m = _get_module "when"
+When = *:pairs -> None where
+    m = _get_module "When"
     if not $ any $ map (::tuple) pairs =>
         if len pairs == 2 and (pairs!!1)::(type (->1)) =>
             condition, body = pairs
@@ -83,7 +88,7 @@ when = *:pairs -> None where
         is_else = condition is otherwise
         if
             did_else =>
-                _SYNTAX_ERROR 1 "'otherwise' was not last in 'when' block"
+                _SYNTAX_ERROR 1 "'otherwise' was not last in 'When' block"
 
             is_first and not is_else =>
                 with m.If condition => # Wanted feature in nMigen: src_loc_at offset
@@ -101,11 +106,11 @@ when = *:pairs -> None where
 
 
 
-#: switch
+#: Switch
 #:
 #: Example:
 #:
-#: switch $input
+#: Switch $input
 #:     1,->
 #:         print "foo"
 #:     2,->
@@ -113,8 +118,8 @@ when = *:pairs -> None where
 #:     otherwise,->
 #:         print "baz"
 
-switch = value *:pairs ->
-    m = _get_module "switch"
+Switch = value *:pairs ->
+    m = _get_module "Switch"
     with m.Switch value =>
         for (match, body) in pairs =>
             if

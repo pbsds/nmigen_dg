@@ -17,45 +17,45 @@ UARTReceiver = subclass Elaboratable where
 
         ctr = Signal$ range @divisor
         stb = Signal!
-        when
+        When
             ctr == 0 ,->
-                sync$ drive ctr (@divisor - 1)
-                comb$ drive stb 1
+                Sync$ Drive ctr (@divisor - 1)
+                Comb$ Drive stb 1
             otherwise ,->
-                sync$ drive ctr (ctr - 1)
+                Sync$ Drive ctr (ctr - 1)
 
         bit = Signal 3
         fsm = FSM
             START ->
-                when ~ @i $ ->
+                When ~ @i $ ->
                     START |>. DATA
-                    sync
-                        drive ctr (@divisor // 2)
-                        drive bit 7
+                    Sync
+                        Drive ctr (@divisor // 2)
+                        Drive bit 7
 
             DATA ->
-                when stb $ ->
-                    sync
-                        drive bit   (bit - 1)
-                        drive @data (Cat @i @data)
+                When stb $ ->
+                    Sync
+                        Drive bit   (bit - 1)
+                        Drive @data (Cat @i @data)
 
-                    when (bit == 0) $ ->
+                    When (bit == 0) $ ->
                         DATA |>. STOP
             STOP ->
-                when stb $ ->
-                    when
+                When stb $ ->
+                    When
                         @i ,->
                             STOP |>. DONE
                         otherwise ,->
                             STOP |>. ERROR
             DONE ->
-                comb$ drive @rdy 1
-                when @ack $ ->
+                Comb$ Drive @rdy 1
+                When @ack $ ->
                     DONE |>. START
 
             ERROR ->
                 None
-        comb$ drive @err $ fsm.ongoing "ERROR"
+        Comb$ Drive @err $ fsm.ongoing "ERROR"
 
 
 

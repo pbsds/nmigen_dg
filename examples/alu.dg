@@ -13,15 +13,15 @@ ALU = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        when
+        When
             @sel == 0b00 ,->
-                comb$ drive @o (@a | @b)
+                Comb$ Drive @o (@a | @b)
             @sel == 0b01 ,->
-                comb$ drive @o (@a & @b)
+                Comb$ Drive @o (@a & @b)
             @sel == 0b10 ,->
-                comb$ drive @o (@a ^ @b)
+                Comb$ Drive @o (@a ^ @b)
             otherwise    ,->
-                comb$ drive (Cat @o @co) (@a - @b)
+                Comb$ Drive (Cat @o @co) (@a - @b)
 
 
 

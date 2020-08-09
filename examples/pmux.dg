@@ -13,15 +13,15 @@ ParMux = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        switch @s
+        Switch @s
             "--1" ,->
-                comb$ drive @o @a
+                Comb$ Drive @o @a
             "-1-" ,->
-                comb$ drive @o @b
+                Comb$ Drive @o @b
             "1--" ,->
-                comb$ drive @o @c
+                Comb$ Drive @o @c
             otherwise ,->
-                comb$ drive @o 0
+                Comb$ Drive @o 0
 
 
 

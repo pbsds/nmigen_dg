@@ -10,8 +10,8 @@ Counter = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        sync$ drive @v (@v + 1)
-        comb$ drive @o (@v !! -1)
+        Sync$ Drive @v (@v + 1)
+        Comb$ Drive @o (@v !! -1)
 
 
 

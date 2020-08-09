@@ -73,9 +73,9 @@ If we turn all the HDL statements into functions instead of methods, and disallo
 ## A more clear separation between hardware constructs and elaboration program-flow
 
 `If` became awfully close to the existing keyword `if` after i got rid of the `with m.` prefix.
-I opted to rename the `If/Elif/Else` constructs in nMigen to `when`.
+I opted to rename the `If/Elif/Else` constructs in nMigen to `When`.
 This change is to better mentally separate the execution flow from the hardware logic being implemented.
-The `when` keyword is inspired by [Chisel3](https://www.chisel-lang.org/), and `dg` already has a `otherwise` constant equal to `True`, which then naturally replaced the `else` case.
+The `When` keyword is inspired by [Chisel3](https://www.chisel-lang.org/), and `dg` already has a `otherwise` constant equal to `True`, which then naturally replaced the `else` case.
 
 
 ## Wrap the context managers in higher order functions
@@ -92,9 +92,9 @@ into
 
 , where `value` and `body` are `self.signal` and `def body(): m.d.cond += self.out` respectively
 
-This is how `nmigen_dg` creates its `when` construct:
+This is how `nmigen_dg` creates its `When` construct:
 
-	when
+	When
 		@input > 0 ,->
 			m.d.comb += @positive.eq 1
 		@input == 0 ,->
@@ -104,29 +104,29 @@ This is how `nmigen_dg` creates its `when` construct:
 		otherwise ,->
 			m.d.comb += @error.eq 1
 
-Here we see the `when` function take in a list of pairs of conditions and body lambdas.
-In Python type annotation, the `when` would look something like this:
+Here we see the `When` function take in a list of pairs of conditions and body lambdas.
+In Python type annotation, the `When` would look something like this:
 
-	def when(*pairs: Sequence[Tuple[Signal, Function]]): ...
+	def When(*pairs: Sequence[Tuple[Signal, Function]]): ...
 
-Due to some weird operator precedence, this does not work for single-line when blocks:
+Due to some weird operator precedence, this does not work for single-line When blocks:
 
-	when condition ,->
+	When condition ,->
 		...
 
 gets parsed as
 
- 	(( when condition ), ( -> ... ))
+	(( When condition ), ( -> ... ))
 
 (I think that `,` having a higher precedence than both `$` and `<|` could be a bug)
-Therefore, `when` supports this alternative calling convention:
+Therefore, `When` supports this alternative calling convention:
 
-	when condition $ ->
+	When condition $ ->
 		...
 
 I am thinking of creating a custom operator equal to `,->` but with a lower precedence.
 
-The `switch` construct is made using the same idea as `when`, turning
+The `Switch` construct is made using the same idea as `When`, turning
 
 	with m.Switch(self.s):
 		with m.Case("--1"):
@@ -140,7 +140,7 @@ The `switch` construct is made using the same idea as `when`, turning
 
 into
 
-	switch @s
+	Switch @s
 		"--1" ,->
 			comb$ drive @o @a
 		"-1-" ,->

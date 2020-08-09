@@ -10,7 +10,7 @@ Adder = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        comb$ drive @o (@a + @b)
+        Comb$ Drive @o (@a + @b)
 
 
 
@@ -22,7 +22,7 @@ Subtractor = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        comb$ drive @o (@a - @b)
+        Comb$ Drive @o (@a - @b)
 
 
 
@@ -41,18 +41,18 @@ ALU = subclass Elaboratable where
         m.submodules.add = @add
         m.submodules.sub = @sub
 
-        comb
-            drive @add.a @a
-            drive @sub.a @a
-            drive @add.b @b
-            drive @sub.b @b
+        Comb
+            Drive @add.a @a
+            Drive @sub.a @a
+            Drive @add.b @b
+            Drive @sub.b @b
 
-        when
+        When
             @op, ->
-                comb$ drive @o @sub.o
+                Comb$ Drive @o @sub.o
 
             otherwise,->
-                comb$ drive @o @add.o
+                Comb$ Drive @o @add.o
 
 
 
