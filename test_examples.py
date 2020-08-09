@@ -23,8 +23,8 @@ with ThreadPoolExecutor() as e:
         batches.append((
             pyscript,
             dgscript,
-            e.submit(subprocess.run, ["python",             pyscript, "generate"], capture_output=True),
-            e.submit(subprocess.run, ["python", "-m", "dg", dgscript, "generate"], capture_output=True),
+            e.submit(subprocess.run, ["python",             pyscript, "generate", "-t", "v"], capture_output=True),
+            e.submit(subprocess.run, ["python", "-m", "dg", dgscript, "generate", "-t", "v"], capture_output=True),
         ))
 
 col_width = max(len(pyscript) for pyscript, *_ in batches)
