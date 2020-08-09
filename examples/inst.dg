@@ -12,7 +12,7 @@ System = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        m.submodules.cpu = Instance "CPU"
+        Submodule.cpu$ Instance "CPU"
             p_RESET_ADDR : 0xfff0
             i_d_adr      : @adr
             i_d_dat_r    : @dat_r

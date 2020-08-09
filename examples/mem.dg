@@ -13,8 +13,8 @@ RegisterFile = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        m.submodules.rdport = rdport = @mem.read_port!
-        m.submodules.wrport = wrport = @mem.write_port!
+        rdport = Submodule.rdport$ @mem.read_port!
+        wrport = Submodule.wrport$ @mem.write_port!
         Comb
             Drive rdport.addr @adr
             Drive @dat_r      rdport.data

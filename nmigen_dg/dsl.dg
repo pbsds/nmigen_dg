@@ -62,6 +62,15 @@ Sync = Domains.sync
 Comb = Domains.comb
 
 
+#: TODO
+
+Submodule = Obj! where Obj = subclass object where
+    __call__ = submodule ~> submodule where
+        (_get_module 'Submodule').submodules += submodule
+    __getattr__ = name ~> submodule -> submodule where
+        setattr (_get_module 'Submodule').submodules name submodule
+
+
 
 #: if, elif, else -> When + otherwise
 #:

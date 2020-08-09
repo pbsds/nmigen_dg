@@ -6,7 +6,7 @@ import '/nmigen/cli/main'
 
 i, o = Signal name:"i", Signal name:"o"
 with m = Module! =>
-    m.submodules += FFSynchronizer i o
+    Submodule$ FFSynchronizer i o
 
 if __name__ == "__main__" =>
     main m ports: [i, o]

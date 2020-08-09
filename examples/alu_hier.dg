@@ -38,8 +38,8 @@ ALU = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        m.submodules.add = @add
-        m.submodules.sub = @sub
+        Submodule.add$ @add
+        Submodule.sub$ @sub
 
         Comb
             Drive @add.a @a
