@@ -46,8 +46,8 @@ Most HDLs lets you drive registers/wires/signals with some kind of operator deri
 Python does not have any operators to spare for this purpose, and therefore the nMigen team landed on `target.eq(source)`.
 Most Python programmers read `eq` as *"equals"*, opening the gates for you to confuse the assignment with an equality check.
 
-`nmigen_dg` therefore introduces an alternative function: `drive(target, source)`.
-In `dg` syntax it becomes `drive target source`.
+`nmigen_dg` therefore introduces an alternative function: `Drive(target, source)`.
+In `dg` syntax it becomes `Drive target source`.
 
 `dg` also allows you to create custom infix operators by modifying the parser/compiler. I am currently pondering on adding `target <== source`
 
@@ -59,14 +59,14 @@ If we turn all the HDL statements into functions instead of methods, and disallo
 
 	elaborate = platform ~>
 		m = Module!
-		m.d.comb += drive $a ($b + $c)
+		m.d.comb += Drive $a ($b + $c)
 		return m
 
 , can become
 
 	elaborate = platform ~> m where with m = Module! =>
 
-		comb$ drive $a ($b + $c)
+		Comb$ Drive $a ($b + $c)
 
 
 
@@ -142,13 +142,13 @@ into
 
 	Switch @s
 		"--1" ,->
-			comb$ drive @o @a
+			Comb$ Drive @o @a
 		"-1-" ,->
-			comb$ drive @o @b
+			Comb$ Drive @o @b
 		"1--" ,->
-			comb$ drive @o @c
+			Comb$ Drive @o @c
 		otherwise ,->
-			comb$ drive @o 0
+			Comb$ Drive @o 0
 
 
 ## Abuse lambdas and their signatures
@@ -244,7 +244,7 @@ First:
 
 , or run and compare all of them:
 
-	poetry run ./test_examples.py | column -s: -t
+	poetry run ./test_examples.py
 
 If you have python 3.8 installed. Install python3.7 alongside and run it as follows:
 
