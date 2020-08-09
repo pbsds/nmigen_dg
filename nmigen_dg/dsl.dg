@@ -122,17 +122,16 @@ When = *:pairs -> None where
 #:     otherwise ,->
 #:         print "baz"
 
-Switch = value *:pairs ->
+Switch = value *:cases ->
     m = _get_module "Switch"
     with m.Switch value =>
-        for (match, body) in pairs =>
-            if
-                match is otherwise =>
-                    with m.Case! =>
-                        body!
-                otherwise =>
-                    with m.Case match =>
-                        body!
+        for (match, body) in cases => if
+            match is otherwise =>
+                with m.Case! =>
+                    body!
+            otherwise =>
+                with m.Case match =>
+                    body!
 
 
 
