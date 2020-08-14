@@ -9,7 +9,7 @@ with m = Module! =>
     m.domains += cd_por, cd_sync
 
     delay = Signal (range 256) reset: 255 name:'delay'
-    with m.If$ delay != 0 =>
+    When (delay != 0) $ ->
         Domains.por$ delay :== delay - 1
     Comb
         ClockSignal! :== cd_por.clk
