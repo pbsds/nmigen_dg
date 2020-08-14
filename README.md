@@ -56,14 +56,14 @@ If we turn all the HDL statements into functions instead of methods, and disallo
 
 	elaborate = platform ~>
 		m = Module!
-		m.d.comb += Drive $a ($b + $c)
+		m.d.comb += ($a :== ($b + $c))
 		return m
 
 , can become
 
 	elaborate = platform ~> m where with m = Module! =>
 
-		Comb$ Drive $a ($b + $c)
+		Comb$ $a :== ($b + $c)
 
 
 
@@ -139,13 +139,13 @@ into
 
 	Switch @s
 		"--1" ,->
-			Comb$ Drive @o @a
+			Comb$ @o :== @a
 		"-1-" ,->
-			Comb$ Drive @o @b
+			Comb$ @o :== @b
 		"1--" ,->
-			Comb$ Drive @o @c
+			Comb$ @o :== @c
 		otherwise ,->
-			Comb$ Drive @o 0
+			Comb$ @o :== 0
 
 
 ## Abuse lambdas and their signatures
