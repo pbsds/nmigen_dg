@@ -54,13 +54,18 @@ Drive = signal value -> signal.eq value where # TODO: remove
 #:     Domain.mydomain$ Drive @c 5
 #:     Mydomain = Domain.mydomain
 #:     Mydomain$ Drive @d 6
+#:     Domain.mydomain = ClockDomain "mydomain"
+#:     Domain.mydomain$ Drive $e 7
 
 Domains = Obj! where Obj = subclass object where
-    __getattribute__ = domain_name ~>
+    __getattr__ = domain_name ~>
         *:statements -> # accepts any amount of statments
             m = _get_module $ 'Domains.' + domain_name
             domain = m.d `getattr` domain_name
             domain += list statements
+    __setattr__ = domain_name domain ~> None where
+        m = _get_module $ 'Domains.' + domain_name
+        setattr m.domains domain_name domain
 Sync = Domains.sync
 Comb = Domains.comb
 

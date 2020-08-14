@@ -4,9 +4,9 @@ import '/nmigen.cli/main'
 
 
 with m = Module! =>
-    cd_por  = ClockDomain name:'cd_por' reset_less: True
-    cd_sync = ClockDomain name:'cd_sync'
-    m.domains += cd_por, cd_sync
+    cd_por  = Domains.por  = ClockDomain reset_less: True
+    cd_sync = Domains.sync = ClockDomain!
+
 
     delay = Signal (range 256) reset: 255 name:'delay'
     When (delay != 0) $ ->
