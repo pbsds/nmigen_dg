@@ -16,11 +16,11 @@ RegisterFile = subclass Elaboratable where
         rdport = Submodule.rdport$ @mem.read_port!
         wrport = Submodule.wrport$ @mem.write_port!
         Comb
-            Drive rdport.addr @adr
-            Drive @dat_r      rdport.data
-            Drive wrport.addr @adr
-            Drive wrport.data @dat_w
-            Drive wrport.en   @we
+            rdport.addr :== @adr
+            @dat_r      :== rdport.data
+            wrport.addr :== @adr
+            wrport.data :== @dat_w
+            wrport.en   :== @we
 
 
 

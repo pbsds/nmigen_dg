@@ -10,8 +10,8 @@ ClockDivisor = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        Sync$ Drive @v (@v + 1)
-        Comb$ Drive @o (@v !! -1)
+        Sync$ @v :== @v + 1
+        Comb$ @o :== @v !! -1
 
 
 

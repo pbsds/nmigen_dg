@@ -15,13 +15,13 @@ ParMux = subclass Elaboratable where
 
         Switch @s
             "--1" ,->
-                Comb$ Drive @o @a
+                Comb$ @o :== @a
             "-1-" ,->
-                Comb$ Drive @o @b
+                Comb$ @o :== @b
             "1--" ,->
-                Comb$ Drive @o @c
+                Comb$ @o :== @c
             otherwise ,->
-                Comb$ Drive @o 0
+                Comb$ @o :== 0
 
 
 

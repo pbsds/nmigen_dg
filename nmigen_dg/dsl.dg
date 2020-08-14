@@ -37,9 +37,12 @@ HIGH = 1
 LOW  = 0
 
 
-#: 'Drive a b' instead of 'a.eq b' or a |>.eq b
+#: 'a :== b' instead of 'a.eq b' or a |>.eq b
 
-Drive = signal value -> signal.eq value # TODO: find a nice infix way
+Drive = signal value -> signal.eq value where # TODO: remove
+    (import "/warnings" pure).warn "'Drive' is deprecated"
+
+:==   = signal value -> signal.eq value
 
 
 #: Registering domains

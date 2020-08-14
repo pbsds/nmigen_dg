@@ -15,13 +15,13 @@ ALU = subclass Elaboratable where
 
         When
             @sel == 0b00 ,->
-                Comb$ Drive @o (@a | @b)
+                Comb$ @o :== (@a | @b)
             @sel == 0b01 ,->
-                Comb$ Drive @o (@a & @b)
+                Comb$ @o :== (@a & @b)
             @sel == 0b10 ,->
-                Comb$ Drive @o (@a ^ @b)
+                Comb$ @o :== (@a ^ @b)
             otherwise    ,->
-                Comb$ Drive (Cat @o @co) (@a - @b)
+                Comb$ Cat @o @co :== @a - @b
 
 
 

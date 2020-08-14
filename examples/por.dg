@@ -10,10 +10,10 @@ with m = Module! =>
 
     delay = Signal (range 256) reset: 255 name:'delay'
     with m.If$ delay != 0 =>
-        m.d.por += Drive delay (delay - 1)
+        Domains.por$ delay :== delay - 1
     Comb
-        Drive ClockSignal! (cd_por.clk)
-        Drive ResetSignal! (delay != 0)
+        ClockSignal! :== cd_por.clk
+        ResetSignal! :== (delay != 0)
 
 
 if __name__ == "__main__" =>

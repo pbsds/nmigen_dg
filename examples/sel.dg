@@ -13,9 +13,9 @@ FlatGPIO = subclass Elaboratable where
 
 
 
-        Comb$ Drive @bus.r_data $ @pins.word_select @bus.addr (len @bus.r_data)
+        Comb$ @bus.r_data :== @pins.word_select @bus.addr (len @bus.r_data)
         with m.If @bus.we => # TODO
-            Sync$ Drive (@pins.word_select @bus.addr (len @bus.w_data)) @bus.w_data
+            Sync$ @pins.word_select @bus.addr (len @bus.w_data) :== @bus.w_data
 
 
 

@@ -46,10 +46,7 @@ Most HDLs lets you drive registers/wires/signals with some kind of operator deri
 Python does not have any operators to spare for this purpose, and therefore the nMigen team landed on `target.eq(source)`.
 Most Python programmers read `eq` as *"equals"*, opening the gates for you to confuse the assignment with an equality check.
 
-`nmigen_dg` therefore introduces an alternative function: `Drive(target, source)`.
-In `dg` syntax it becomes `Drive target source`.
-
-`dg` also allows you to create custom infix operators by modifying the parser/compiler. I am currently pondering on adding `target <== source`
+`nmigen_dg`, allowing you to create custom operators, therefore introduces an alternative operator: `target :== source`.
 
 
 ## Infer `m` from context
