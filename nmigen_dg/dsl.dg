@@ -1,7 +1,7 @@
 import "/nmigen/*"
-_get_src_loc = import "/nmigen/tracer/get_src_loc" pure
 _contextmanager = import "/contextlib/contextmanager" pure
-_signature = import '/inspect/signature' pure
+_signature      = import '/inspect/signature' pure
+_skip_frame     = import "tracer/skip_frame" pure
 
 #: TODO
 
@@ -95,12 +95,13 @@ Submodule = Obj! where Obj = subclass object where
 #:     otherwise,->
 #:         print "baz"
 
-When = *:pairs -> None where
+When = *:pairs -> None where with _skip_frame! =>
     m = _get_module "When"
     if not $ any $ map (::tuple) pairs =>
         if len pairs == 2 and (pairs!!1)::(type (->1)) =>
             condition, body = pairs
-            with m.If condition => body!
+            with m.If condition =>
+                with _skip_frame! => body!
             return None
 
     is_first = True
@@ -112,16 +113,16 @@ When = *:pairs -> None where
                 _SYNTAX_ERROR 1 "'otherwise' was not last in 'When' block"
 
             is_first and not is_else =>
-                with m.If condition => # Wanted feature in nMigen: src_loc_at offset
-                    body!
+                with m.If condition =>
+                    with _skip_frame! => body!
 
             not is_first and not is_else =>
-                with m.Elif condition => # Wanted feature in nMigen: src_loc_at offset
-                    body!
+                with m.Elif condition =>
+                    with _skip_frame! => body!
 
             is_else =>
-                with m.Else! => # Wanted feature in nMigen: src_loc_at offset
-                    body!
+                with m.Else! =>
+                    with _skip_frame! => body!
                 did_else = True
         is_first = False
 
@@ -139,7 +140,7 @@ When = *:pairs -> None where
 #:     otherwise ,->
 #:         print "baz"
 
-Switch = value *:cases ->
+Switch = value *:cases -> with _skip_frame! =>
     m = _get_module "Switch"
     with m.Switch value =>
         for (match, body) in cases => if
@@ -172,7 +173,7 @@ Switch = value *:cases ->
 #:             print "bar3"
 #:             state3 |>. state1
 
-FSM = *:states -> fsm where
+FSM = *:states -> fsm where with _skip_frame! =>
     m = _get_module "FSM"
 
     AttrNext = subclass object where
@@ -193,10 +194,10 @@ FSM = *:states -> fsm where
     names = list (where for state_body in states =>
         yield head $ (_signature state_body).parameters.keys!)
 
-    with fsm = m.FSM! => # TODO: src_loc_at
+    with fsm = m.FSM! =>
         for (name, state_body) in zip names states =>
-            with m.State name => # TODO: src_loc_at
-                state_body $ Next name
+            with m.State name =>
+                with _skip_frame! => state_body (Next name)
 
 
 #: todo
@@ -208,5 +209,5 @@ Record = record where
             yield (name, func None)
     _Record = Record
     record = *:funcs **:kwargs ->
-        #kwargs!!"src_loc_at" = 2 + kwargs.get "src_loc_at" 0
-        _Record (funcs_to_pairs funcs) **:kwargs
+        with _skip_frame! =>
+            _Record (funcs_to_pairs funcs) **:kwargs
