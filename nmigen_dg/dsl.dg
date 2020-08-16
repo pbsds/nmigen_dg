@@ -15,16 +15,16 @@ _SYNTAX_ERROR = src_loc_offset *:text sep:" " ->
 
 # shadow the Module function with our own: a context manager
 
-_current_module = None # global variable with the currently active Module being elaborated
-module_elaboration_context = _contextmanager $ module -> # how we set _current_module
-    pushed_context = _current_module # store the current module
-    _current_module := module # push new module
-    yield module # yield a reference of the module to the caller
-    _current_module := pushed_context # pop of the module
+_CURRENT_MODULE = None # global variable with the currently active Module being elaborated
+module_elaboration_context = _contextmanager$ module -> # how we set _CURRENT_MODULE
+    current_module = _CURRENT_MODULE  # store
+    _CURRENT_MODULE := module         # push
+    yield module                      # yield a reference of the new module to the caller
+    _CURRENT_MODULE := current_module # pop
 
-_get_module = bind getter Module where # bind a reference to the original nmigen module
-    getter = Module debug_name -> _current_module where
-        not $ _current_module :: Module =>
+_get_module = bind getter Module where # bind a reference to the original nmigen Module
+    getter = Module debug_name -> _CURRENT_MODULE where
+        not $ _CURRENT_MODULE :: Module =>
             _SYNTAX_ERROR 1 (repr debug_name) "construction used outside of a module_elaboration_context"
 Module = (-> context_maker!) where
     context_maker = module_elaboration_context <- Module # bind a reference to the original nmigen module
@@ -40,7 +40,7 @@ LOW  = 0
 #: 'a :== b' instead of 'a.eq b' or a |>.eq b
 
 Drive = signal value -> signal.eq value where # TODO: remove
-    (import "/warnings" pure).warn "'Drive' is deprecated"
+    (import "/warnings" pure).warn "'Drive' is deprecated, use infix :== instead"
 
 :==   = signal value -> signal.eq value
 
@@ -49,13 +49,13 @@ Drive = signal value -> signal.eq value where # TODO: remove
 #:
 #: Example:
 #:
-#:     Sync$ Drive @a HIGH
-#:     Comb$ Drive @b LOW
-#:     Domain.mydomain$ Drive @c 5
+#:     Sync$ @a :== HIGH
+#:     Comb$ @b :== LOW
+#:     Domain.mydomain$ @c :== 5
 #:     Mydomain = Domain.mydomain
-#:     Mydomain$ Drive @d 6
+#:     Mydomain$ @d :== 6
 #:     Domain.mydomain = ClockDomain "mydomain"
-#:     Domain.mydomain$ Drive $e 7
+#:     Domain.mydomain$ $e :== 7
 
 Domains = Obj! where Obj = subclass object where
     __getattr__ = domain_name ~>
@@ -88,11 +88,11 @@ Submodule = Obj! where Obj = subclass object where
 #:     print "eyo"
 #:
 #: When
-#:     @a,->
+#:     @a ,->
 #:         print "foo"
-#:     @b,->
+#:     @b ,->
 #:         print "bar"
-#:     otherwise,->
+#:     otherwise ,->
 #:         print "baz"
 
 When = *:pairs -> None where with _skip_frame! =>
@@ -191,8 +191,8 @@ FSM = *:states -> fsm where with _skip_frame! =>
             m.next = next_state_name
 
 
-    names = list (where for state_body in states =>
-        yield head $ (_signature state_body).parameters.keys!)
+    names = list f! where f = -> for state_body in states =>
+        yield head $ (_signature state_body).parameters.keys!
 
     with fsm = m.FSM! =>
         for (name, state_body) in zip names states =>
@@ -203,11 +203,12 @@ FSM = *:states -> fsm where with _skip_frame! =>
 #: todo
 
 Record = record where
-    funcs_to_pairs = funcs ->
-        for func in funcs =>
-            name = head $ (_signature func).parameters.keys!
-            yield (name, func None)
+    func_to_pair = func -> (name, func None) where
+        name = head $ (_signature func).parameters.keys!
+
+    # bind the original nmigen Record
     _Record = Record
+
     record = *:funcs **:kwargs ->
         with _skip_frame! =>
-            _Record (funcs_to_pairs funcs) **:kwargs
+            _Record (map func_to_pair funcs) **:kwargs
