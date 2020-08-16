@@ -46,7 +46,7 @@ Most HDLs lets you drive registers/wires/signals with some kind of operator deri
 Python does not have any operators to spare for this purpose, and therefore the nMigen team landed on `target.eq(source)`.
 Most Python programmers read `eq` as *"equals"*, opening the gates for you to confuse the assignment with an equality check.
 
-`nmigen_dg`, allowing you to create custom operators, therefore introduces an alternative operator: `target :== source`.
+`nmigen_dg`, allowing you to create custom operators, therefore introduces an alternative operator: `target ::= source`.
 
 
 ## Infer `m` from context
@@ -56,14 +56,14 @@ If we turn all the HDL statements into functions instead of methods, and disallo
 
 	elaborate = platform ~>
 		m = Module!
-		m.d.comb += ($a :== ($b + $c))
+		m.d.comb += ($a ::= ($b + $c))
 		return m
 
 , can become
 
 	elaborate = platform ~> m where with m = Module! =>
 
-		Comb$ $a :== ($b + $c)
+		Comb$ $a ::= ($b + $c)
 
 
 
@@ -139,13 +139,13 @@ into
 
 	Switch @s
 		"--1" ,->
-			Comb$ @o :== @a
+			Comb$ @o ::= @a
 		"-1-" ,->
-			Comb$ @o :== @b
+			Comb$ @o ::= @b
 		"1--" ,->
-			Comb$ @o :== @c
+			Comb$ @o ::= @c
 		otherwise ,->
-			Comb$ @o :== 0
+			Comb$ @o ::= 0
 
 
 ## Abuse lambdas and their signatures

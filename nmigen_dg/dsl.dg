@@ -37,25 +37,28 @@ HIGH = 1
 LOW  = 0
 
 
-#: 'a :== b' instead of 'a.eq b' or a |>.eq b
+#: 'a ::= b' instead of 'a.eq b' or a |>.eq b
 
 Drive = signal value -> signal.eq value where # TODO: remove
-    (import "/warnings" pure).warn "'Drive' is deprecated, use infix :== instead"
+    (import "/warnings" pure).warn "'Drive' is deprecated, use infix ::= instead"
 
-:==   = signal value -> signal.eq value
+:==   = signal value -> signal.eq value where # TODO: remove
+    (import "/warnings" pure).warn "':==' is deprecated, use ::= instead"
+
+::=   = signal value -> signal.eq value
 
 
 #: Registering domains
 #:
 #: Example:
 #:
-#:     Sync$ @a :== HIGH
-#:     Comb$ @b :== LOW
-#:     Domain.mydomain$ @c :== 5
+#:     Sync$ @a ::= HIGH
+#:     Comb$ @b ::= LOW
+#:     Domain.mydomain$ @c ::= 5
 #:     Mydomain = Domain.mydomain
-#:     Mydomain$ @d :== 6
+#:     Mydomain$ @d ::= 6
 #:     Domain.mydomain = ClockDomain "mydomain"
-#:     Domain.mydomain$ $e :== 7
+#:     Domain.mydomain$ $e ::= 7
 
 Domains = Obj! where Obj = subclass object where
     __getattr__ = domain_name ~>

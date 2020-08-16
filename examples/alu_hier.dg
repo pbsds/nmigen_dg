@@ -10,7 +10,7 @@ Adder = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        Comb$ @o :== @a + @b
+        Comb$ @o ::= @a + @b
 
 
 
@@ -22,7 +22,7 @@ Subtractor = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        Comb$ @o :== @a - @b
+        Comb$ @o ::= @a - @b
 
 
 
@@ -42,17 +42,17 @@ ALU = subclass Elaboratable where
         Submodule.sub$ @sub
 
         Comb
-            @add.a :== @a
-            @sub.a :== @a
-            @add.b :== @b
-            @sub.b :== @b
+            @add.a ::= @a
+            @sub.a ::= @a
+            @add.b ::= @b
+            @sub.b ::= @b
 
         When
             @op, ->
-                Comb$ @o :== @sub.o
+                Comb$ @o ::= @sub.o
 
             otherwise,->
-                Comb$ @o :== @add.o
+                Comb$ @o ::= @add.o
 
 
 

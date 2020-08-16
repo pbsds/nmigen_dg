@@ -11,8 +11,8 @@ Counter = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        Sync$ @v :== @v + 1
-        Comb$ @o :== @v !! -1
+        Sync$ @v ::= @v + 1
+        Comb$ @o ::= @v !! -1
         m = (EnableInserter @en) m
 
 
@@ -27,7 +27,7 @@ ce_proc = ->
     yield from list' None None None
     yield drive ctr.en 1
     yield from list' None None None
-    yield ctr.en :== 0
+    yield ctr.en ::= 0
     yield from list' None None None
     yield drive ctr.en 1
 sim.add_sync_process ce_proc

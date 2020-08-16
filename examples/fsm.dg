@@ -19,10 +19,10 @@ UARTReceiver = subclass Elaboratable where
         stb = Signal!
         When
             ctr == 0 ,->
-                Sync$ ctr :== @divisor - 1
-                Comb$ stb :== 1
+                Sync$ ctr ::= @divisor - 1
+                Comb$ stb ::= 1
             otherwise ,->
-                Sync$ ctr :== ctr - 1
+                Sync$ ctr ::= ctr - 1
 
         bit = Signal 3
         fsm = FSM
@@ -30,14 +30,14 @@ UARTReceiver = subclass Elaboratable where
                 When ~ @i $ ->
                     START |>. DATA
                     Sync
-                        ctr :== @divisor // 2
-                        bit :== 7
+                        ctr ::= @divisor // 2
+                        bit ::= 7
 
             DATA ->
                 When stb $ ->
                     Sync
-                        bit   :== bit - 1
-                        @data :== Cat @i @data
+                        bit   ::= bit - 1
+                        @data ::= Cat @i @data
 
                     When (bit == 0) $ ->
                         DATA |>. STOP
@@ -49,13 +49,13 @@ UARTReceiver = subclass Elaboratable where
                         otherwise ,->
                             STOP |>. ERROR
             DONE ->
-                Comb$ @rdy :== 1
+                Comb$ @rdy ::= 1
                 When @ack $ ->
                     DONE |>. START
 
             ERROR ->
                 None
-        Comb$ @err :== fsm.ongoing "ERROR"
+        Comb$ @err ::= fsm.ongoing "ERROR"
 
 
 

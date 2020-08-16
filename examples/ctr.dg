@@ -10,8 +10,8 @@ Counter = subclass Elaboratable where
 
     elaborate = platform ~> m where with m = Module! =>
 
-        Sync$ @v :== @v + 1
-        Comb$ @o :== @v !! -1
+        Sync$ @v ::= @v + 1
+        Comb$ @o ::= @v !! -1
 
 
 
