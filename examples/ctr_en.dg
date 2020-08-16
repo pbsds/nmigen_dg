@@ -1,6 +1,6 @@
 #!/usr/bin/env -S python3 -m dg
 import '/nmigen_dg/*'
-import '/nmigen/back/verilog'
+import '/nmigen/back/rtlil'
 import '/nmigen/back/pysim'
 
 Counter = subclass Elaboratable where
@@ -18,7 +18,8 @@ Counter = subclass Elaboratable where
 
 ctr = Counter width: 16
 
-print $ verilog.convert ctr ports: [ctr.o, ctr.en]
+#print $ verilog.convert ctr ports: [ctr.o, ctr.en]
+print $ rtlil.convert ctr ports: [ctr.o, ctr.en]
 
 sim = pysim.Simulator ctr
 sim.add_clock 1e-6

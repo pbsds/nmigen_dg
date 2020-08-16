@@ -18,7 +18,8 @@ class Counter(Elaboratable):
 
 ctr = Counter(width=16)
 
-print(verilog.convert(ctr, ports=[ctr.o, ctr.en]))
+#print(verilog.convert(ctr, ports=[ctr.o, ctr.en]))
+print(rtlil.convert(ctr, ports=[ctr.o, ctr.en]))
 
 sim = pysim.Simulator(ctr)
 sim.add_clock(1e-6)
