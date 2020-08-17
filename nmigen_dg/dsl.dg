@@ -32,9 +32,9 @@ Module = (-> context_maker!) where
 
 #: constants
 
-#(TODO: remove?)
-HIGH = 1
-LOW  = 0
+# TODO: remove? src_loc_at?
+HIGH = Const 1 # src_loc_at: 1
+LOW  = Const 0 # src_loc_at: 1
 
 
 #: 'a ::= b' instead of 'a.eq b' or a |>.eq b
@@ -143,9 +143,9 @@ When = *:pairs -> None where with _skip_frame! =>
 #:     otherwise ,->
 #:         print "baz"
 
-Switch = value *:cases -> with _skip_frame! =>
+Switch = match *:cases -> with _skip_frame! =>
     m = _get_module "Switch"
-    with m.Switch value =>
+    with m.Switch match =>
         for (match, body) in cases => if
             match is otherwise =>
                 with m.Case! =>
