@@ -46,7 +46,9 @@ Most HDLs lets you drive registers/wires/signals with some kind of operator deri
 Python does not have any operators to spare for this purpose, and therefore the nMigen team landed on `target.eq(source)`.
 Most Python programmers read `eq` as *"equals"*, opening the gates for you to confuse the assignment with an equality check.
 
-`nmigen_dg`, allowing you to create custom operators, therefore introduces an alternative operator: `target ::= source`.
+`nmigen_dg`, with the ability to create custom operators, therefore introduces the `::=` operator:
+
+	target ::= source
 
 
 ## Infer `m` from context
@@ -56,21 +58,20 @@ If we turn all the HDL statements into functions instead of methods, and disallo
 
 	elaborate = platform ~>
 		m = Module!
-		m.d.comb += ($a ::= ($b + $c))
+		m.d.comb += (@a ::= @b + @c)
 		return m
 
 , can become
 
 	elaborate = platform ~> m where with m = Module! =>
-
-		Comb$ $a ::= ($b + $c)
-
+		Comb$ $a ::= $b + $c
 
 
-## A more clear separation between hardware constructs and elaboration program-flow
+
+## A clearer separation between hardware constructs and elaboration program-flow
 
 `If` became awfully close to the existing keyword `if` after i got rid of the `with m.` prefix.
-I opted to rename the `If/Elif/Else` constructs in nMigen to `When`.
+I therefore opted to rename the `If/Elif/Else` constructs in nMigen to `When`.
 This change is to better mentally separate the execution flow from the hardware logic being implemented.
 The `When` keyword is inspired by [Chisel3](https://www.chisel-lang.org/), and `dg` already has a `otherwise` constant equal to `True`, which then naturally replaced the `else` case.
 
@@ -93,13 +94,13 @@ This is how `nmigen_dg` creates its `When` construct:
 
 	When
 		@input > 0 ,->
-			m.d.comb += @positive.eq 1
+			m.d.comb += @positive ::= 1
 		@input == 0 ,->
-			m.d.comb += @positive.eq 1
+			m.d.comb += @zero     ::= 1
 		@input < 0 ,->
-			m.d.comb += @positive.eq 1
+			m.d.comb += @negative ::= 1
 		otherwise ,->
-			m.d.comb += @error.eq 1
+			m.d.comb += @error    ::= 1
 
 Here we see the `When` function take in a list of pairs of conditions and body lambdas.
 In Python type annotation, the `When` would look something like this:
@@ -121,7 +122,7 @@ Therefore, `When` supports this alternative calling convention:
 	When condition $ ->
 		...
 
-I am thinking of creating a custom operator equal to `,->` but with a lower precedence.
+I am concidering creating a custom operator equal to `,->` but with a lower precedence.
 
 The `Switch` construct is made using the same idea as `When`, turning
 
