@@ -1,0 +1,68 @@
+
+FSM = subclass object where
+    fsm_stack = [] # assuming no threading
+
+    __init__ = module ~> None where
+        @module = module
+        @n_states_made = 0
+        @current_state_context = None
+
+        @depth = len @fsm_stack
+        @fsm_stack.append self
+        print @module "FSM start" # STRACE
+
+    state = classmethod $ cls name ->
+        self = last cls.fsm_stack
+        print @module "state" name # STRACE
+
+        @n_states_made += 1
+        #return True # STRACE
+        not (@current_state_context is None) =>
+            @current_state_context.__exit__ None None None
+        @current_state_context = @module.State name
+        @current_state_context.__enter__!
+
+        True # must satisfy the =>
+
+    next_state = classmethod $ cls name ->
+        self = last cls.fsm_stack
+
+        @current_state_context is None =>
+            raise $ SyntaxError "next_state used outside of state context"
+
+        @module.next = name
+
+    __call__ = *:args ~>
+        print @module "FSM end" # STRACE
+        @n_states_made != len args =>
+            raise $ SyntaxError "FSM context was was ended some states unaccounted for"
+
+        self != @fsm_stack.pop! =>
+            raise $ SyntaxError "FSM context was was ended with an another context on top of the stack"
+
+    __del__ = self ->
+        self in fsm_stack =>
+            print "WARNING: FSM context was constructed without being properly elaborated"
+        @current_state_context =>
+            print "WARNING: FSM context was constructed without being properly elaborated"
+
+state      = FSM.state
+next_state = FSM.next_state
+
+
+(FSM 1)
+    state "foo1" =>
+        print "bar1"
+    state "foo2" =>
+        print "bar2"
+
+        (FSM 2)
+            state "sub-foo1" =>
+                print "sub-bar1"
+            state "sub-foo2" =>
+                print "sub-bar2"
+            state "sub-foo3" =>
+                print "sub-bar3"
+
+    state "foo3" =>
+        print "bar3"

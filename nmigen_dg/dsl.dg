@@ -22,12 +22,11 @@ module_elaboration_context = _contextmanager$ module -> # how we set _CURRENT_MO
     yield module                      # yield a reference of the new module to the caller
     _CURRENT_MODULE := current_module # pop
 
-_get_module = bind getter Module where # bind a reference to the original nmigen Module
-    getter = Module debug_name -> _CURRENT_MODULE where
-        not $ _CURRENT_MODULE :: Module =>
-            _SYNTAX_ERROR 1 (repr debug_name) "construction used outside of a module_elaboration_context"
-Module = (-> context_maker!) where
-    context_maker = module_elaboration_context <- Module # bind a reference to the original nmigen module
+_get_module = debug_name Module: Module -> _CURRENT_MODULE where
+    _CURRENT_MODULE :: Module or
+        _SYNTAX_ERROR 1 (repr debug_name)
+            "construction used outside of a module_elaboration_context"
+Module = Module: Module -> module_elaboration_context Module!
 
 
 #: constants
@@ -37,16 +36,21 @@ HIGH = Const 1 # src_loc_at: 1
 LOW  = Const 0 # src_loc_at: 1
 
 
+#: Arithmitic
+
 #: 'a ::= b' instead of 'a.eq b' or a |>.eq b
 
-Drive = signal value -> signal.eq value where # TODO: remove
-    (import "/warnings" pure).warn "'Drive' is deprecated, use infix ::= instead"
+::= = signal value -> signal.eq value
 
-:==   = signal value -> signal.eq value where # TODO: remove
-    (import "/warnings" pure).warn "':==' is deprecated, use ::= instead"
+&& = l r -> (l.bool! & r.bool!)
+|| = l r -> (l.bool! | r.bool!)
 
-::=   = signal value -> signal.eq value
+++ = l r -> a + b where
+    a = Cat l 0 # TODO: sign extend, preserve signedness
+    b = Cat r 0 # TODO: sign extend, preserve signedness
 
+
+# TODO: operator precedence for the above infix operators
 
 #: Registering domains
 #:
@@ -67,13 +71,24 @@ Domains = Obj! where Obj = subclass object where
             domain = m.d `getattr` domain_name
             domain += list statements
     __setattr__ = domain_name domain ~> None where
-        m = _get_module $ 'Domains.' + domain_name
+        m = _get_module $ 'Domains.' + domain_name + " = "
         setattr m.domains domain_name domain
+    __iadd__ = items ~>
+        m = _get_module $ 'Domains.' + domain_name + " += "
+        m.domains += items
 Sync = Domains.sync
 Comb = Domains.comb
 
 
-#: TODO
+
+#: Submodule, for intitializing elaboratables inside a module
+#:
+#: Example:
+#:
+#: Submodule$ MyElaboratable!
+#: Submodule.myname$ MyElaboratable!
+#: myref = Submodule.myname$ MyElaboratable!
+#:
 
 Submodule = Obj! where Obj = subclass object where
     __call__ = submodule ~> submodule where

@@ -1,0 +1,30 @@
+a = list$ range 10
+
+DgSlice = subclass object where
+    __init__ = *:parts ~>
+        @parts = parts
+
+    as_slice = ~> slice @parts
+
+! = sequence index -> value where
+    print "   " sequence index
+    value = if
+        not index :: list => raise TypeError "! operator expected list on rhs, found " + (type index).__name__
+        len index <= 1 => raise SyntaxError "![ _ ] requires at least 2 arguments, " + (str$ len index) " were given"
+        len index >  3 => raise SyntaxError "![ _ ] requires at most 3 arguments, "  + (str$ len index) " were given"
+        otherwise => sequence !! slice *:index
+
+
+print$ a![1]
+print$ a![1,None]
+print$ a![None,4]
+print$ a![None,4]
+
+
+asd = list'
+    1
+    2
+    3
+    4
+    5
+

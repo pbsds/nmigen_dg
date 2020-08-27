@@ -14,3 +14,11 @@ skip_frame = contextmanager$ offset:1 ->
     SRC_LOC_OFFSET := SRC_LOC_OFFSET + offset
     yield None
     SRC_LOC_OFFSET := SRC_LOC_OFFSET - offset
+
+"""
+ASDASD = tracer.get_var_name
+tracer.get_var_name = depth default ->
+    ret = ASDASD (depth + 1) default
+    print ret
+    ret
+"""
